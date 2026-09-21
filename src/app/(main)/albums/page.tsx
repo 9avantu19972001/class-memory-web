@@ -41,7 +41,7 @@ export default async function AlbumsPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {albums?.map((album) => {
+        {albums?.map((album, idx) => {
           const photoList = album.photos || []
           const photoCount = photoList.length
           const firstPhoto = photoList[0]
@@ -63,7 +63,8 @@ export default async function AlbumsPage() {
                   {coverUrl ? (
                     <img 
                       src={coverUrl} 
-                      alt={album.title} 
+                      alt={`Ảnh bìa album ${album.title}`}
+                      {...(idx === 0 ? { fetchPriority: 'high' } : { loading: 'lazy', decoding: 'async' })}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                     />
                   ) : (
