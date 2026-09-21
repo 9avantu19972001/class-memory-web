@@ -6,6 +6,17 @@ import CreateAlbumModal from './CreateAlbumModal'
 export default async function AlbumsPage() {
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  let isApproved = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_approved')
+      .eq('id', user.id)
+      .single()
+    isApproved = !!profile?.is_approved
+  }
+
   // Fetch albums along with a count of photos and the cover photo if any
   const { data: albums } = await supabase
     .from('albums')
@@ -26,7 +37,7 @@ export default async function AlbumsPage() {
           <h1 className="text-3xl font-serif font-bold text-foreground">Album kỷ niệm</h1>
           <p className="text-foreground/70 mt-1">Những khoảnh khắc được lưu giữ theo thời gian</p>
         </div>
-        <CreateAlbumModal />
+        <CreateAlbumModal isLoggedIn={!!user} isApproved={isApproved} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

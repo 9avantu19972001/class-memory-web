@@ -4,14 +4,35 @@ import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { createAlbum } from './actions'
 
-export default function CreateAlbumModal() {
+import { useRouter } from 'next/navigation'
+
+export default function CreateAlbumModal({
+  isLoggedIn,
+  isApproved,
+}: {
+  isLoggedIn: boolean
+  isApproved: boolean
+}) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+
+  const handleButtonClick = () => {
+    if (!isLoggedIn) {
+      router.push('/login')
+      return
+    }
+    if (!isApproved) {
+      alert('Tài khoản của bạn đang chờ Admin duyệt trước khi tạo Album.')
+      return
+    }
+    setIsOpen(true)
+  }
 
   return (
     <>
       <button 
-        onClick={() => setIsOpen(true)}
+        onClick={handleButtonClick}
         className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-full font-medium transition-colors flex items-center gap-2 shadow-sm"
       >
         <Plus className="w-5 h-5" />

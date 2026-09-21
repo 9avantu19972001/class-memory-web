@@ -8,7 +8,15 @@ import { createClient } from '@/lib/supabase/client'
 import { savePhotoRecords, addYoutubeVideo } from '../actions'
 import { useRouter } from 'next/navigation'
 
-export default function UploadPhotos({ albumId }: { albumId: string }) {
+export default function UploadPhotos({
+  albumId,
+  isLoggedIn,
+  isApproved,
+}: {
+  albumId: string
+  isLoggedIn: boolean
+  isApproved: boolean
+}) {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'photo' | 'video'>('photo')
   const [files, setFiles] = useState<File[]>([])
@@ -17,6 +25,18 @@ export default function UploadPhotos({ albumId }: { albumId: string }) {
   const [videoUrl, setVideoUrl] = useState('')
   const router = useRouter()
   const supabase = createClient()
+
+  const handleOpenModal = () => {
+    if (!isLoggedIn) {
+      router.push('/login')
+      return
+    }
+    if (!isApproved) {
+      alert('Tài khoản của bạn đang chờ Admin duyệt trước khi tải ảnh lên.')
+      return
+    }
+    setIsOpen(true)
+  }
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFiles(prev => [...prev, ...acceptedFiles])
@@ -99,7 +119,7 @@ export default function UploadPhotos({ albumId }: { albumId: string }) {
   return (
     <>
       <button 
-        onClick={() => setIsOpen(true)}
+        onClick={handleOpenModal}
         className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-full font-medium transition-colors flex items-center gap-2 shadow-sm"
       >
         <Upload className="w-5 h-5" />

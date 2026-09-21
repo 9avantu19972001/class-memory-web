@@ -34,6 +34,17 @@ export default async function AlbumDetailsPage({
     .eq('album_id', id)
     .order('created_at', { ascending: false })
 
+  const { data: { user } } = await supabase.auth.getUser()
+  let isApproved = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_approved')
+      .eq('id', user.id)
+      .single()
+    isApproved = !!profile?.is_approved
+  }
+
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 w-full flex-1 flex flex-col">
       <Link href="/albums" className="inline-flex items-center gap-2 text-foreground/60 hover:text-primary transition-colors mb-6 w-fit">
@@ -61,7 +72,7 @@ export default async function AlbumDetailsPage({
           </div>
           
           <div className="flex-shrink-0">
-            <UploadPhotos albumId={album.id} />
+            <UploadPhotos albumId={album.id} isLoggedIn={!!user} isApproved={isApproved} />
           </div>
         </div>
       </div>

@@ -13,56 +13,56 @@ export default async function MainLayout({
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
+  let profile = null
+  if (user) {
+    const { data, error: profileError } = await supabase
+      .from('profiles')
+      .select('is_approved, full_name, role')
+      .eq('id', user.id)
+      .single()
 
-  // Fetch user profile to check approval status
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('is_approved, full_name, role')
-    .eq('id', user.id)
-    .single()
-
-  if (profileError) {
-    console.error('Profile fetch error:', profileError)
-  }
-
-  if (!profile?.is_approved) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
-        <h2 className="text-3xl font-serif font-bold text-foreground mb-4">Tài khoản đang chờ duyệt</h2>
-        <p className="text-foreground/70 mb-8 max-w-md">
-          Xin chào {profile?.full_name || 'bạn'}, yêu cầu tham gia của bạn đang được Ban quản trị xem xét. 
-          Vui lòng quay lại sau nhé!
-        </p>
-        <form action={logout}>
-          <button type="submit" className="text-primary hover:underline">
-            Đăng xuất
-          </button>
-        </form>
-      </div>
-    )
+    if (profileError) {
+      console.error('Profile fetch error:', profileError)
+    }
+    profile = data
   }
 
   return (
     <div className="min-h-screen flex flex-col">
+      {user && profile && !profile.is_approved && (
+        <div className="bg-amber-100 text-amber-900 px-4 py-2 text-center text-sm font-medium border-b border-amber-200">
+          Tài khoản của bạn ({profile.full_name}) đang chờ Admin duyệt. Bạn có thể xem ảnh nhưng chưa thể tải ảnh lên.
+        </div>
+      )}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="font-serif font-bold text-xl text-primary">9A1 Memories</div>
+          <a href="/" className="font-serif font-bold text-xl text-primary hover:opacity-80 transition-opacity">
+            9A1 Memories
+          </a>
           <nav className="hidden md:flex items-center gap-6">
             <a href="/" className="font-medium hover:text-primary transition-colors">Trang chủ</a>
             <a href="/albums" className="font-medium hover:text-primary transition-colors">Albums</a>
           </nav>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-foreground/70 hidden sm:inline-block">
-              {profile.full_name}
-            </span>
-            <form action={logout}>
-              <button className="text-sm font-medium bg-secondary/50 hover:bg-secondary px-4 py-2 rounded-full transition-colors">
-                Đăng xuất
-              </button>
-            </form>
+            {user ? (
+              <>
+                <span className="text-sm text-foreground/70 hidden sm:inline-block">
+                  {profile?.full_name || 'Thành viên'}
+                </span>
+                <form action={logout}>
+                  <button className="text-sm font-medium bg-secondary/50 hover:bg-secondary px-4 py-2 rounded-full transition-colors">
+                    Đăng xuất
+                  </button>
+                </form>
+              </>
+            ) : (
+              <a
+                href="/login"
+                className="text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 px-5 py-2 rounded-full transition-colors shadow-sm"
+              >
+                Đăng nhập
+              </a>
+            )}
           </div>
         </div>
       </header>
