@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Plus, Image as ImageIcon } from 'lucide-react'
 import CreateAlbumModal from './CreateAlbumModal'
+import { getYouTubeThumbnail } from '@/lib/youtube'
 
 export default async function AlbumsPage() {
   const supabase = await createClient()
@@ -49,8 +50,7 @@ export default async function AlbumsPage() {
           let coverUrl = album.cover_photo_url
           if (!coverUrl && firstPhoto) {
             if (firstPhoto.is_video && firstPhoto.video_url) {
-              const vId = new URL(firstPhoto.video_url).searchParams.get('v')
-              coverUrl = vId ? `https://img.youtube.com/vi/${vId}/hqdefault.jpg` : null
+              coverUrl = getYouTubeThumbnail(firstPhoto.video_url)
             } else if (firstPhoto.storage_path) {
               coverUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/memories/${firstPhoto.storage_path}`
             }
