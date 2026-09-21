@@ -18,11 +18,15 @@ export default async function MainLayout({
   }
 
   // Fetch user profile to check approval status
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('is_approved, full_name, role')
     .eq('id', user.id)
     .single()
+
+  if (profileError) {
+    console.error('Profile fetch error:', profileError)
+  }
 
   if (!profile?.is_approved) {
     return (
