@@ -15,7 +15,7 @@ export default async function LoginPage({
             Đăng nhập
           </h2>
           <p className="mt-2 text-center text-sm text-foreground/60">
-            Chào mừng trở lại không gian lớp 9A1
+            Chào mừng trở lại không gian lớp 9A
           </p>
         </div>
         <form className="mt-8 space-y-6" action={login}>

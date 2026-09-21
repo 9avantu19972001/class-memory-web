@@ -25,7 +25,7 @@ export default async function Home() {
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center gap-6">
             <div className="bg-background/85 backdrop-blur-sm p-8 md:p-12 rounded-3xl shadow-sm border border-white/40">
               <h1 className="text-4xl md:text-6xl font-bold font-serif text-foreground mb-4">
-                Lớp 9A1
+                Lớp 9A
               </h1>
               <p className="text-xl md:text-2xl font-serif text-foreground/80 mb-6">
                 Nơi lưu giữ thanh xuân & kỷ niệm

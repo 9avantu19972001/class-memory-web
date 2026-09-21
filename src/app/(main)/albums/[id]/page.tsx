@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, Calendar, User } from 'lucide-react'
 import UploadPhotos from './UploadPhotos'
 import Gallery from './Gallery'
+import DeleteAlbumButton from './DeleteAlbumButton'
 
 export default async function AlbumDetailsPage({
   params
@@ -71,8 +72,11 @@ export default async function AlbumDetailsPage({
             </div>
           </div>
           
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-center gap-3">
             <UploadPhotos albumId={album.id} isLoggedIn={!!user} isApproved={isApproved} />
+            {user && (
+              <DeleteAlbumButton albumId={album.id} />
+            )}
           </div>
         </div>
       </div>

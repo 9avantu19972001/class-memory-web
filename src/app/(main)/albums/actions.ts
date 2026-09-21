@@ -82,3 +82,40 @@ export async function addYoutubeVideo(albumId: string, formData: FormData) {
 
   revalidatePath(`/albums/${albumId}`)
 }
+
+export async function deleteAlbum(albumId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // 1. Fetch photos to delete storage files
+  const { data: photos } = await supabase
+    .from('photos')
+    .select('storage_path, is_video')
+    .eq('album_id', albumId)
+
+  if (photos && photos.length > 0) {
+    const filePaths = photos
+      .filter(p => !p.is_video && p.storage_path && p.storage_path !== 'youtube')
+      .map(p => p.storage_path)
+
+    if (filePaths.length > 0) {
+      await supabase.storage.from('memories').remove(filePaths)
+    }
+  }
+
+  // 2. Delete album record (cascade deletes photos in DB)
+  const { error } = await supabase
+    .from('albums')
+    .delete()
+    .eq('id', albumId)
+
+  if (error) {
+    console.error('Error deleting album:', error)
+    throw new Error('Failed to delete album')
+  }
+
+  revalidatePath('/albums')
+  revalidatePath('/')
+  redirect('/albums')
+}

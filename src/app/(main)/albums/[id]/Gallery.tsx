@@ -61,7 +61,7 @@ export default function Gallery({ photos }: { photos: any[] }) {
             ) : (
               <img 
                 src={getPublicUrl(photo.storage_path)} 
-                alt={photo.caption || "Kỷ niệm lớp 9A1"}
+                alt={photo.caption || "Kỷ niệm lớp 9A"}
                 {...(i === 0 ? { fetchPriority: 'high' } : { loading: 'lazy', decoding: 'async' })}
                 className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
               />

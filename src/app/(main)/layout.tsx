@@ -37,7 +37,7 @@ export default async function MainLayout({
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <a href="/" className="font-serif font-bold text-xl text-primary hover:opacity-80 transition-opacity">
-            9A1 Memories
+            9A Memories
           </a>
           <nav className="hidden md:flex items-center gap-6">
             <a href="/" className="font-medium hover:text-primary transition-colors">Trang chủ</a>
