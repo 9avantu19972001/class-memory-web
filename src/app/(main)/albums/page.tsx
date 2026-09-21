@@ -1,0 +1,74 @@
+import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import { Plus, Image as ImageIcon } from 'lucide-react'
+import CreateAlbumModal from './CreateAlbumModal'
+
+export default async function AlbumsPage() {
+  const supabase = await createClient()
+
+  // Fetch albums along with a count of photos and the cover photo if any
+  const { data: albums } = await supabase
+    .from('albums')
+    .select(`
+      id, 
+      title, 
+      description, 
+      cover_photo_url, 
+      created_at,
+      photos ( count )
+    `)
+    .order('created_at', { ascending: false })
+
+  return (
+    <main className="max-w-6xl mx-auto px-4 py-8 w-full">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-serif font-bold text-foreground">Album kỷ niệm</h1>
+          <p className="text-foreground/70 mt-1">Những khoảnh khắc được lưu giữ theo thời gian</p>
+        </div>
+        <CreateAlbumModal />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {albums?.map((album) => {
+          const photoCount = album.photos?.[0]?.count || 0
+          
+          return (
+            <Link key={album.id} href={`/albums/${album.id}`} className="group block">
+              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-primary/50 flex flex-col h-full">
+                <div className="aspect-[4/3] bg-secondary/30 relative flex items-center justify-center overflow-hidden">
+                  {album.cover_photo_url ? (
+                    <img 
+                      src={album.cover_photo_url} 
+                      alt={album.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    />
+                  ) : (
+                    <ImageIcon className="w-12 h-12 text-primary/40" />
+                  )}
+                  <div className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-foreground">
+                    {photoCount} mục
+                  </div>
+                </div>
+                <div className="p-4 flex-1 flex flex-col">
+                  <h3 className="font-bold text-foreground font-serif text-lg line-clamp-1">{album.title}</h3>
+                  <p className="text-sm text-foreground/70 line-clamp-2 mt-1 flex-1">
+                    {album.description || "Không có mô tả"}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          )
+        })}
+
+        {albums?.length === 0 && (
+          <div className="col-span-full py-20 flex flex-col items-center justify-center text-center bg-card rounded-2xl border border-dashed border-border">
+            <ImageIcon className="w-16 h-16 text-primary/30 mb-4" />
+            <h3 className="text-xl font-serif font-bold text-foreground">Chưa có album nào</h3>
+            <p className="text-foreground/70 mt-2 mb-6">Hãy là người đầu tiên tạo album chia sẻ kỷ niệm nhé!</p>
+          </div>
+        )}
+      </div>
+    </main>
+  )
+}
