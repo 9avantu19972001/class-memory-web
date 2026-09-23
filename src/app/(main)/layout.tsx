@@ -58,6 +58,7 @@ export default async function MainLayout({
             <a href="/" className="font-medium hover:text-primary transition-colors">Trang chủ</a>
             <a href="/timeline" className="font-medium hover:text-primary transition-colors">Niên khóa</a>
             <a href="/albums" className="font-medium hover:text-primary transition-colors">Albums</a>
+            <a href="/videos" className="font-medium hover:text-primary transition-colors">Video</a>
             <a href="/members" className="font-medium hover:text-primary transition-colors">Thành viên</a>
             <a href="/guestbook" className="font-medium hover:text-primary transition-colors">Lưu bút</a>
             {isAdmin && (

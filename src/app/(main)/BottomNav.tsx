@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, History, Image as ImageIcon, Users, BookOpen, Shield } from 'lucide-react'
+import { Home, History, Image as ImageIcon, Users, BookOpen, Shield, Film } from 'lucide-react'
 
 interface BottomNavProps {
   isAdmin?: boolean
@@ -16,6 +16,7 @@ export default function BottomNav({ isAdmin = false, pendingCount = 0 }: BottomN
     { href: '/', label: 'Trang chủ', icon: Home },
     { href: '/timeline', label: 'Niên khóa', icon: History },
     { href: '/albums', label: 'Albums', icon: ImageIcon },
+    { href: '/videos', label: 'Video', icon: Film },
     { href: '/members', label: 'Thành viên', icon: Users },
     { href: '/guestbook', label: 'Lưu bút', icon: BookOpen },
   ]

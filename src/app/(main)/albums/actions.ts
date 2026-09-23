@@ -81,6 +81,7 @@ export async function addYoutubeVideo(albumId: string, formData: FormData) {
   }
 
   revalidatePath(`/albums/${albumId}`)
+  revalidatePath('/videos')
 }
 
 export async function deleteAlbum(albumId: string) {
@@ -256,6 +257,7 @@ export async function deletePhoto(photoId: string, albumId: string) {
 
   revalidatePath(`/albums/${albumId}`)
   revalidatePath('/albums')
+  revalidatePath('/videos')
   revalidatePath('/')
 }
 
@@ -284,6 +286,7 @@ export async function togglePhotoReaction(photoId: string, albumId: string, reac
   }
 
   revalidatePath(`/albums/${albumId}`)
+  revalidatePath('/videos')
 }
 
 export async function addPhotoComment(photoId: string, albumId: string, content: string) {
@@ -306,6 +309,7 @@ export async function addPhotoComment(photoId: string, albumId: string, content:
   }
 
   revalidatePath(`/albums/${albumId}`)
+  revalidatePath('/videos')
 }
 
 export async function deletePhotoComment(commentId: string, albumId: string) {
@@ -324,4 +328,5 @@ export async function deletePhotoComment(commentId: string, albumId: string) {
   }
 
   revalidatePath(`/albums/${albumId}`)
+  revalidatePath('/videos')
 }
