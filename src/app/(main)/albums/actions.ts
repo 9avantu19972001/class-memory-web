@@ -34,26 +34,54 @@ export async function createAlbum(formData: FormData) {
   redirect(`/albums/${data.id}`)
 }
 
-export async function savePhotoRecords(albumId: string, photos: { path: string; caption?: string }[]) {
+export async function savePhotoRecords(
+  albumId: string, 
+  photos: { path: string; caption?: string; taken_year?: number | null; taken_month?: number | null }[],
+  commonDate?: { taken_year?: number | null; taken_month?: number | null }
+) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const records = photos.map(photo => ({
-    album_id: albumId,
-    uploaded_by: user.id,
-    storage_path: photo.path,
-    caption: photo.caption || null,
-    is_video: false
-  }))
+  const recordsWithDate = photos.map(photo => {
+    const year = photo.taken_year ?? commonDate?.taken_year ?? null
+    const month = photo.taken_month ?? commonDate?.taken_month ?? null
+    return {
+      album_id: albumId,
+      uploaded_by: user.id,
+      storage_path: photo.path,
+      caption: photo.caption || null,
+      is_video: false,
+      taken_year: year ? Number(year) : null,
+      taken_month: month ? Number(month) : null,
+    }
+  })
 
-  const { error } = await supabase.from('photos').insert(records)
+  let { error } = await supabase.from('photos').insert(recordsWithDate)
+
+  // Fallback an toàn nếu chưa chạy migration thêm cột taken_year/taken_month
+  if (error && (error.code === '42703' || error.message.includes('column') || error.message.includes('does not exist'))) {
+    console.warn('Columns taken_year/taken_month not found in photos table yet. Falling back to basic insert.', error.message)
+    const fallbackRecords = photos.map(photo => ({
+      album_id: albumId,
+      uploaded_by: user.id,
+      storage_path: photo.path,
+      caption: photo.caption || null,
+      is_video: false,
+    }))
+    const res = await supabase.from('photos').insert(fallbackRecords)
+    error = res.error
+  }
+
   if (error) {
     console.error('Error saving photos', error)
     throw new Error('Failed to save photos')
   }
 
   revalidatePath(`/albums/${albumId}`)
+  revalidatePath('/albums')
+  revalidatePath('/timeline')
+  revalidatePath('/')
 }
 
 export async function addYoutubeVideo(albumId: string, formData: FormData) {
@@ -63,17 +91,37 @@ export async function addYoutubeVideo(albumId: string, formData: FormData) {
 
   const video_url = formData.get('video_url') as string
   const caption = formData.get('caption') as string
+  const taken_year_raw = formData.get('taken_year') as string
+  const taken_month_raw = formData.get('taken_month') as string
+  const taken_year = taken_year_raw ? parseInt(taken_year_raw, 10) : null
+  const taken_month = taken_month_raw ? parseInt(taken_month_raw, 10) : null
 
   if (!video_url) return
 
-  const { error } = await supabase.from('photos').insert({
+  let { error } = await supabase.from('photos').insert({
     album_id: albumId,
     uploaded_by: user.id,
     storage_path: 'youtube', // placeholder
     is_video: true,
     video_url: video_url,
-    caption: caption || null
+    caption: caption || null,
+    taken_year,
+    taken_month,
   })
+
+  // Fallback an toàn nếu chưa chạy migration thêm cột taken_year/taken_month
+  if (error && (error.code === '42703' || error.message.includes('column') || error.message.includes('does not exist'))) {
+    console.warn('Columns taken_year/taken_month not found in photos table yet. Falling back to basic insert.', error.message)
+    const res = await supabase.from('photos').insert({
+      album_id: albumId,
+      uploaded_by: user.id,
+      storage_path: 'youtube',
+      is_video: true,
+      video_url: video_url,
+      caption: caption || null,
+    })
+    error = res.error
+  }
 
   if (error) {
     console.error('Error saving youtube video', error)
@@ -81,7 +129,10 @@ export async function addYoutubeVideo(albumId: string, formData: FormData) {
   }
 
   revalidatePath(`/albums/${albumId}`)
+  revalidatePath('/albums')
+  revalidatePath('/timeline')
   revalidatePath('/videos')
+  revalidatePath('/')
 }
 
 export async function deleteAlbum(albumId: string) {

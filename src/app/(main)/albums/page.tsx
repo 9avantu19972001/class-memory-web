@@ -1,25 +1,33 @@
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import { Plus, Image as ImageIcon } from 'lucide-react'
-import CreateAlbumModal from './CreateAlbumModal'
-import { getYouTubeThumbnail } from '@/lib/youtube'
+import AlbumsClient from './AlbumsClient'
+
+export const metadata = {
+  title: 'Kho Kỷ Niệm Lớp 9A - Album & Dòng Thời Gian',
+  description: 'Kho lưu giữ hình ảnh và video kỷ niệm niên khóa 1997 - 2001 Lớp 9A',
+}
 
 export default async function AlbumsPage() {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   let isApproved = false
+  let isAdmin = false
+
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_approved')
+      .select('is_approved, role')
       .eq('id', user.id)
       .single()
-    isApproved = !!profile?.is_approved
+    isApproved = !!profile?.is_approved || profile?.role === 'admin'
+    isAdmin = profile?.role === 'admin'
   }
 
-  // Fetch albums along with photos for cover and count
-  const { data: albums } = await supabase
+  // 1. Lấy danh sách albums
+  const { data: rawAlbums } = await supabase
     .from('albums')
     .select(`
       id, 
@@ -31,70 +39,82 @@ export default async function AlbumsPage() {
     `)
     .order('created_at', { ascending: false })
 
+  const albums = rawAlbums || []
+
+  // 2. Lấy toàn bộ ảnh và video để phục vụ Dòng thời gian ảnh
+  let allPhotos: any[] = []
+  const { data: photosData, error: photosError } = await supabase
+    .from('photos')
+    .select(`
+      id,
+      album_id,
+      storage_path,
+      caption,
+      is_video,
+      video_url,
+      taken_year,
+      taken_month,
+      created_at,
+      uploaded_by,
+      albums ( id, title, is_public ),
+      uploader:uploaded_by ( full_name, avatar_url ),
+      comments (
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles:user_id ( full_name, avatar_url, role )
+      ),
+      reactions (
+        id,
+        type,
+        user_id
+      )
+    `)
+    .order('created_at', { ascending: false })
+
+  if (photosError) {
+    // Fallback an toàn nếu chưa chạy migration thêm taken_year/taken_month
+    const { data: fallbackPhotos } = await supabase
+      .from('photos')
+      .select(`
+        id,
+        album_id,
+        storage_path,
+        caption,
+        is_video,
+        video_url,
+        created_at,
+        uploaded_by,
+        albums ( id, title, is_public ),
+        uploader:uploaded_by ( full_name, avatar_url ),
+        comments (
+          id,
+          content,
+          created_at,
+          user_id,
+          profiles:user_id ( full_name, avatar_url, role )
+        ),
+        reactions (
+          id,
+          type,
+          user_id
+        )
+      `)
+      .order('created_at', { ascending: false })
+    allPhotos = fallbackPhotos || []
+  } else {
+    allPhotos = photosData || []
+  }
+
   return (
-    <main className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full min-w-0">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">Album kỷ niệm</h1>
-          <p className="text-foreground/70 text-xs sm:text-sm mt-1">Những khoảnh khắc được lưu giữ theo thời gian</p>
-        </div>
-        <div className="self-stretch sm:self-auto flex items-center justify-end">
-          <CreateAlbumModal isLoggedIn={!!user} isApproved={isApproved} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 w-full">
-        {albums?.map((album, idx) => {
-          const photoList = album.photos || []
-          const photoCount = photoList.length
-          const firstPhoto = photoList[0]
-
-          let coverUrl = album.cover_photo_url
-          if (!coverUrl && firstPhoto) {
-            if (firstPhoto.is_video && firstPhoto.video_url) {
-              coverUrl = getYouTubeThumbnail(firstPhoto.video_url)
-            } else if (firstPhoto.storage_path) {
-              coverUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/memories/${firstPhoto.storage_path}`
-            }
-          }
-          
-          return (
-            <Link key={album.id} href={`/albums/${album.id}`} className="group block">
-              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-primary/50 flex flex-col h-full">
-                <div className="aspect-[4/3] bg-secondary/30 relative flex items-center justify-center overflow-hidden">
-                  {coverUrl ? (
-                    <img 
-                      src={coverUrl} 
-                      alt={`Ảnh bìa album ${album.title}`}
-                      {...(idx === 0 ? { fetchPriority: 'high' } : { loading: 'lazy', decoding: 'async' })}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                    />
-                  ) : (
-                    <ImageIcon className="w-12 h-12 text-primary/40" />
-                  )}
-                  <div className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-foreground">
-                    {photoCount} mục
-                  </div>
-                </div>
-                <div className="p-4 flex-1 flex flex-col">
-                  <h3 className="font-bold text-foreground font-serif text-lg line-clamp-1">{album.title}</h3>
-                  <p className="text-sm text-foreground/70 line-clamp-2 mt-1 flex-1">
-                    {album.description || "Không có mô tả"}
-                  </p>
-                </div>
-              </div>
-            </Link>
-          )
-        })}
-
-        {albums?.length === 0 && (
-          <div className="col-span-full py-20 flex flex-col items-center justify-center text-center bg-card rounded-2xl border border-dashed border-border">
-            <ImageIcon className="w-16 h-16 text-primary/30 mb-4" />
-            <h3 className="text-xl font-serif font-bold text-foreground">Chưa có album nào</h3>
-            <p className="text-foreground/70 mt-2 mb-6">Hãy là người đầu tiên tạo album chia sẻ kỷ niệm nhé!</p>
-          </div>
-        )}
-      </div>
-    </main>
+    <AlbumsClient
+      albums={albums}
+      photos={allPhotos}
+      isLoggedIn={!!user}
+      isApproved={isApproved}
+      isAdmin={isAdmin}
+      currentUserId={user?.id || null}
+    />
   )
 }

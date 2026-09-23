@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import TimelineList, { TimelineEventItem } from './TimelineList'
+import { TimelineEventItem } from './TimelineList'
+import TimelinePageClient from './TimelinePageClient'
 
 export const metadata = {
   title: 'Dòng Thời Gian Niên Khóa 1997 - 2001 - Lớp 9A',
@@ -27,7 +28,7 @@ export default async function TimelinePage() {
     isAdmin = profile?.role === 'admin'
   }
 
-  // Fetch timeline events with author info
+  // 1. Fetch timeline events with author info
   const { data: rawEvents, error } = await supabase
     .from('timeline_events')
     .select(`
@@ -84,10 +85,76 @@ export default async function TimelinePage() {
     has_liked: likedEventIds.has(e.id),
   }))
 
+  // 2. Fetch all photos for photo timeline
+  let allPhotos: any[] = []
+  const { data: photosData, error: photosError } = await supabase
+    .from('photos')
+    .select(`
+      id,
+      album_id,
+      storage_path,
+      caption,
+      is_video,
+      video_url,
+      taken_year,
+      taken_month,
+      created_at,
+      uploaded_by,
+      albums ( id, title, is_public ),
+      uploader:uploaded_by ( full_name, avatar_url ),
+      comments (
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles:user_id ( full_name, avatar_url, role )
+      ),
+      reactions (
+        id,
+        type,
+        user_id
+      )
+    `)
+    .order('created_at', { ascending: false })
+
+  if (photosError) {
+    const { data: fallbackPhotos } = await supabase
+      .from('photos')
+      .select(`
+        id,
+        album_id,
+        storage_path,
+        caption,
+        is_video,
+        video_url,
+        created_at,
+        uploaded_by,
+        albums ( id, title, is_public ),
+        uploader:uploaded_by ( full_name, avatar_url ),
+        comments (
+          id,
+          content,
+          created_at,
+          user_id,
+          profiles:user_id ( full_name, avatar_url, role )
+        ),
+        reactions (
+          id,
+          type,
+          user_id
+        )
+      `)
+      .order('created_at', { ascending: false })
+    allPhotos = fallbackPhotos || []
+  } else {
+    allPhotos = photosData || []
+  }
+
   return (
     <main className="max-w-5xl mx-auto px-3 sm:px-4 py-6 sm:py-10 w-full min-w-0">
-      <TimelineList
-        initialEvents={events}
+      <TimelinePageClient
+        events={events}
+        photos={allPhotos}
         currentUserId={user?.id || null}
         isApproved={isApproved}
         isAdmin={isAdmin}

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Upload, X, Loader2, Image as ImageIcon, Video } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
+import { Upload, X, Loader2, Image as ImageIcon, Video, Calendar } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import imageCompression from 'browser-image-compression'
 import { createClient } from '@/lib/supabase/client'
@@ -18,14 +19,36 @@ export default function UploadPhotos({
   isLoggedIn: boolean
   isApproved: boolean
 }) {
+  const [mounted, setMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'photo' | 'video'>('photo')
   const [files, setFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [videoUrl, setVideoUrl] = useState('')
+  const [takenYear, setTakenYear] = useState<number>(2001)
+  const [takenMonth, setTakenMonth] = useState<string>('')
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Lock scroll when open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && !isUploading) setIsOpen(false)
+      }
+      window.addEventListener('keydown', handleKeyDown)
+      return () => {
+        document.body.style.overflow = 'unset'
+        window.removeEventListener('keydown', handleKeyDown)
+      }
+    }
+  }, [isOpen, isUploading])
 
   const handleOpenModal = () => {
     if (!isLoggedIn) {
@@ -88,8 +111,15 @@ export default function UploadPhotos({
         setProgress(Math.round(((i + 1) / files.length) * 100))
       }
       
-      // 3. Save to database
-      await savePhotoRecords(albumId, uploadedRecords)
+      // 3. Save to database with taken_year & taken_month
+      await savePhotoRecords(
+        albumId, 
+        uploadedRecords, 
+        { 
+          taken_year: takenYear ? Number(takenYear) : null, 
+          taken_month: takenMonth ? Number(takenMonth) : null 
+        }
+      )
       
       setFiles([])
       setIsOpen(false)
@@ -117,6 +147,17 @@ export default function UploadPhotos({
     }
   }
 
+const QUICK_YEARS = [
+  { year: 2001, label: '2001 (Ra trường)' },
+  { year: 2000, label: '2000 (Lớp 9A)' },
+  { year: 1999, label: '1999 (Lớp 8A)' },
+  { year: 1998, label: '1998 (Lớp 7A)' },
+  { year: 1997, label: '1997 (Lớp 6A)' },
+  { year: 2011, label: '2011 (10 năm)' },
+  { year: 2021, label: '2021 (20 năm)' },
+  { year: new Date().getFullYear(), label: `${new Date().getFullYear()} (Hiện tại)` },
+]
+
   return (
     <>
       <button 
@@ -127,8 +168,8 @@ export default function UploadPhotos({
         <span>Thêm kỷ niệm</span>
       </button>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      {isOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-card w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="flex justify-between items-center p-4 border-b border-border">
               <div className="flex space-x-4">
@@ -157,6 +198,79 @@ export default function UploadPhotos({
             </div>
             
             <div className="p-4 overflow-y-auto flex-1">
+              {/* Date selection: Year & Month */}
+              <div className="bg-secondary/15 rounded-xl p-3 border border-border/60 mb-4">
+                <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-foreground">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  <span>Thời gian chụp / ghi hình (hiển thị trên Dòng thời gian):</span>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1">Năm chụp:</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="number" 
+                        value={takenYear} 
+                        onChange={(e) => setTakenYear(parseInt(e.target.value) || 2001)}
+                        min="1990" 
+                        max={new Date().getFullYear() + 1}
+                        className="w-24 px-3 py-1.5 rounded-lg border border-border bg-background text-sm font-semibold text-foreground focus:ring-2 focus:ring-primary outline-none"
+                      />
+                      <div className="flex flex-wrap gap-1 items-center flex-1">
+                        {QUICK_YEARS.slice(0, 5).map(q => (
+                          <button
+                            key={q.year}
+                            type="button"
+                            onClick={() => setTakenYear(q.year)}
+                            className={`text-xs px-2 py-1 rounded transition-colors ${
+                              takenYear === q.year 
+                                ? 'bg-primary text-primary-foreground font-semibold' 
+                                : 'bg-background hover:bg-muted text-muted-foreground border border-border/50'
+                            }`}
+                          >
+                            {q.year}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {QUICK_YEARS.slice(5).map(q => (
+                        <button
+                          key={q.year}
+                          type="button"
+                          onClick={() => setTakenYear(q.year)}
+                          className={`text-xs px-2 py-0.5 rounded transition-colors ${
+                            takenYear === q.year 
+                              ? 'bg-primary text-primary-foreground font-semibold' 
+                              : 'bg-background hover:bg-muted text-muted-foreground border border-border/50'
+                          }`}
+                        >
+                          {q.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1">Tháng chụp (tùy chọn):</label>
+                    <select
+                      value={takenMonth}
+                      onChange={(e) => setTakenMonth(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary outline-none"
+                    >
+                      <option value="">Cả năm / Không rõ tháng</option>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                        <option key={m} value={m.toString()}>Tháng {m}</option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-muted-foreground mt-1.5">
+                      Ảnh sẽ được tự động xếp vào mục năm <strong>{takenYear}</strong> trên Dòng thời gian.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {activeTab === 'photo' ? (
                 <>
                   <div 
@@ -212,6 +326,8 @@ export default function UploadPhotos({
                 </>
               ) : (
                 <form action={handleAddVideo} className="flex flex-col gap-4">
+                  <input type="hidden" name="taken_year" value={takenYear || ''} />
+                  <input type="hidden" name="taken_month" value={takenMonth || ''} />
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1">Đường dẫn YouTube</label>
                     <input 
@@ -283,7 +399,8 @@ export default function UploadPhotos({
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )
