@@ -8,16 +8,20 @@ export const dynamic = 'force-dynamic'
 export default async function MembersPage() {
   const supabase = await createClient()
 
-  // Fetch approved members
-  const { data: members } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('is_approved', true)
-    .order('created_at', { ascending: true })
-
   // Check current user
   const { data: { user } } = await supabase.auth.getUser()
-  const currentUserProfile = members?.find((m) => m.id === user?.id)
+  const { data: currentUserProfile } = user
+    ? await supabase.from('profiles').select('*').eq('id', user.id).single()
+    : { data: null }
+
+  const isAdmin = currentUserProfile?.role === 'admin'
+
+  // Fetch members: Admins see all, normal visitors see approved members
+  let query = supabase.from('profiles').select('*')
+  if (!isAdmin) {
+    query = query.eq('is_approved', true)
+  }
+  const { data: members } = await query.order('created_at', { ascending: true })
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 w-full flex-1">
@@ -36,12 +40,19 @@ export default async function MembersPage() {
         </div>
 
         {currentUserProfile && (
-          <EditProfileModal profile={currentUserProfile} />
+          <EditProfileModal
+            profile={currentUserProfile}
+            isAdmin={isAdmin}
+          />
         )}
       </div>
 
-      {/* Members Directory */}
-      <MembersList members={members || []} currentUserId={user?.id || null} />
+      {/* Members Directory with Edit button on each card */}
+      <MembersList
+        members={members || []}
+        currentUserId={user?.id || null}
+        isAdmin={isAdmin}
+      />
     </main>
   )
 }

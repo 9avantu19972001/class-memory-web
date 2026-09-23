@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, MapPin, Briefcase, ExternalLink, Quote, GraduationCap } from 'lucide-react'
+import { Search, MapPin, Briefcase, ExternalLink, Quote, GraduationCap, Edit3 } from 'lucide-react'
+import EditProfileModal from './EditProfileModal'
 
 interface Member {
   id: string
@@ -14,14 +15,17 @@ interface Member {
   location?: string | null
   quote?: string | null
   facebook_url?: string | null
+  is_approved?: boolean
 }
 
 export default function MembersList({
   members,
   currentUserId,
+  isAdmin = false,
 }: {
   members: Member[]
   currentUserId: string | null
+  isAdmin?: boolean
 }) {
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -38,9 +42,9 @@ export default function MembersList({
 
   return (
     <div>
-      {/* Search Input */}
-      <div className="mb-8 max-w-md mx-auto sm:mx-0">
-        <div className="relative">
+      {/* Search Input & Info Bar */}
+      <div className="mb-8 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
+        <div className="relative max-w-md w-full">
           <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/40" />
           <input
             type="text"
@@ -50,6 +54,12 @@ export default function MembersList({
             className="w-full pl-11 pr-4 py-2.5 bg-card border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground shadow-sm"
           />
         </div>
+
+        {isAdmin && (
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-medium border border-amber-300 dark:border-amber-800/50 self-start sm:self-auto">
+            <span>🛡️ Bạn có quyền Admin: Có thể chỉnh sửa tất cả hồ sơ</span>
+          </div>
+        )}
       </div>
 
       {/* Grid of Member Cards (Yearbook / Student card style) */}
@@ -75,6 +85,11 @@ export default function MembersList({
                 {member.role === 'admin' && (
                   <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
                     Admin
+                  </span>
+                )}
+                {member.is_approved === false && (
+                  <span className="absolute bottom-2 left-3 text-[10px] font-medium bg-rose-100 text-rose-800 border border-rose-200 px-2 py-0.5 rounded-full">
+                    Chờ duyệt
                   </span>
                 )}
 
@@ -150,6 +165,29 @@ export default function MembersList({
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>Trang cá nhân</span>
                     </a>
+                  </div>
+                )}
+
+                {/* Edit Button directly on each member card */}
+                {(isCurrentUser || isAdmin) && (
+                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto">
+                    <span className="text-[11px] text-foreground/50 font-medium">
+                      {isCurrentUser ? 'Hồ sơ của bạn' : 'Quản trị viên'}
+                    </span>
+                    <EditProfileModal
+                      profile={member}
+                      isAdmin={isAdmin}
+                      trigger={
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground transition-all duration-200 border border-primary/20 shadow-xs"
+                          title={isCurrentUser ? 'Chỉnh sửa hồ sơ của bạn' : `Chỉnh sửa hồ sơ của ${displayName}`}
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>Chỉnh sửa</span>
+                        </button>
+                      }
+                    />
                   </div>
                 )}
               </div>
