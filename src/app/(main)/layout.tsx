@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { logout } from '../(auth)/actions'
-import { Home, Image as ImageIcon, Users, BookOpen } from 'lucide-react'
+import { Home, Image as ImageIcon, Users, BookOpen, Shield } from 'lucide-react'
 
 export default async function MainLayout({
   children,
@@ -14,6 +14,8 @@ export default async function MainLayout({
   } = await supabase.auth.getUser()
 
   let profile = null
+  let pendingCount = 0
+
   if (user) {
     const { data, error: profileError } = await supabase
       .from('profiles')
@@ -25,7 +27,18 @@ export default async function MainLayout({
       console.error('Profile fetch error:', profileError)
     }
     profile = data
+
+    // If admin, check number of pending registration requests
+    if (profile?.role === 'admin') {
+      const { count } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_approved', false)
+      pendingCount = count || 0
+    }
   }
+
+  const isAdmin = profile?.role === 'admin'
 
   return (
     <div className="min-h-screen flex flex-col pb-16 md:pb-0">
@@ -44,6 +57,20 @@ export default async function MainLayout({
             <a href="/albums" className="font-medium hover:text-primary transition-colors">Albums</a>
             <a href="/members" className="font-medium hover:text-primary transition-colors">Thành viên</a>
             <a href="/guestbook" className="font-medium hover:text-primary transition-colors">Lưu bút</a>
+            {isAdmin && (
+              <a
+                href="/admin"
+                className="font-medium hover:text-primary transition-colors flex items-center gap-1.5 text-purple-700 dark:text-purple-400 font-semibold"
+              >
+                <Shield className="w-4 h-4" />
+                <span>Quản trị</span>
+                {pendingCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white animate-pulse">
+                    {pendingCount}
+                  </span>
+                )}
+              </a>
+            )}
           </nav>
           <div className="flex items-center gap-4">
             {user ? (
@@ -89,6 +116,22 @@ export default async function MainLayout({
           <BookOpen className="w-5 h-5" />
           <span className="text-[10px] font-medium">Lưu bút</span>
         </a>
+        {isAdmin && (
+          <a
+            href="/admin"
+            className="relative flex flex-col items-center gap-0.5 text-purple-700 dark:text-purple-400 p-1.5 transition-colors"
+          >
+            <div className="relative">
+              <Shield className="w-5 h-5" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-2 px-1 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-white leading-none animate-pulse">
+                  {pendingCount}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] font-bold">Quản trị</span>
+          </a>
+        )}
       </nav>
     </div>
   )
