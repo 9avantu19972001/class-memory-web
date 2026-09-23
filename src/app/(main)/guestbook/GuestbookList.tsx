@@ -109,7 +109,9 @@ export default function GuestbookList({
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({})
   const [submittingComment, setSubmittingComment] = useState<Record<string, boolean>>({})
   const [localComments, setLocalComments] = useState<Record<string, GuestbookComment[]>>({})
+  const [editingEntry, setEditingEntry] = useState<GuestbookEntry | null>(null)
   const router = useRouter()
+
 
   // Filter entries according to active tab & search keyword
   const filteredEntries = entries.filter((entry) => {
@@ -581,20 +583,16 @@ export default function GuestbookList({
 
                     {/* Edit Button (Author or Admin) */}
                     {canEdit && (
-                      <EditGuestbookModal
-                        entry={entry}
-                        classmates={classmates}
-                        trigger={
-                          <button
-                            type="button"
-                            className="p-1.5 rounded-full hover:bg-black/10 text-current/70 hover:text-current transition-colors"
-                            title="Chỉnh sửa mẩu lưu bút"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                        }
-                      />
+                      <button
+                        type="button"
+                        onClick={() => setEditingEntry(entry)}
+                        className="p-1.5 rounded-full hover:bg-black/10 text-current/70 hover:text-current transition-colors"
+                        title="Chỉnh sửa mẩu lưu bút"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
                     )}
+
 
                     {/* Admin Pin Toggle */}
                     {isAdmin && (
@@ -733,6 +731,15 @@ export default function GuestbookList({
             </p>
           </div>
         </div>
+      )}
+
+      {/* Edit Guestbook Entry Modal (Portaled to body) */}
+      {editingEntry && (
+        <EditGuestbookModal
+          entry={editingEntry}
+          classmates={classmates}
+          onClose={() => setEditingEntry(null)}
+        />
       )}
     </div>
   )
