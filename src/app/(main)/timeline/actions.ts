@@ -35,7 +35,7 @@ export async function createTimelineEvent(formData: FormData) {
 
     const title = (formData.get('title') as string)?.trim()
     const description = (formData.get('description') as string)?.trim()
-    const academic_year = (formData.get('academic_year') as string) || 'lop_6'
+    const academic_year = (formData.get('academic_year') as string) || 'reunion'
     const event_date = (formData.get('event_date') as string)?.trim() || null
     const category = (formData.get('category') as string) || 'memory'
     const image_url = (formData.get('image_url') as string)?.trim() || null
@@ -91,7 +91,7 @@ export async function updateTimelineEvent(formData: FormData) {
 
     const title = (formData.get('title') as string)?.trim()
     const description = (formData.get('description') as string)?.trim()
-    const academic_year = (formData.get('academic_year') as string) || 'lop_6'
+    const academic_year = (formData.get('academic_year') as string) || 'reunion'
     const event_date = (formData.get('event_date') as string)?.trim() || null
     const category = (formData.get('category') as string) || 'memory'
     const image_url = (formData.get('image_url') as string)?.trim() || null

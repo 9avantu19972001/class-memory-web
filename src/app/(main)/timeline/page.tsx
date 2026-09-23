@@ -49,8 +49,8 @@ export default async function TimelinePage() {
         school_role
       )
     `)
-    .order('event_date', { ascending: true, nullsFirst: false })
-    .order('created_at', { ascending: true })
+    .order('event_date', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
 
   if (error) {
     console.error('Error fetching timeline events:', error)

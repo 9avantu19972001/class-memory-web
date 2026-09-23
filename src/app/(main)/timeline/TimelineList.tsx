@@ -88,11 +88,18 @@ export default function TimelineList({
     return titleMatch || descMatch || authorMatch
   })
 
-  // Group events by academic year in chronological order
+  // Sort events so the most recent events are always first (descending)
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    const timeA = a.event_date ? new Date(a.event_date).getTime() : new Date(a.created_at).getTime()
+    const timeB = b.event_date ? new Date(b.event_date).getTime() : new Date(b.created_at).getTime()
+    return timeB - timeA
+  })
+
+  // Group events by academic year in reverse chronological order (newest year at top)
   const groupedEvents: { yearConfig: AcademicYearConfig; list: TimelineEventItem[] }[] = []
   for (const year of ACADEMIC_YEARS) {
-    const list = filteredEvents.filter((e) => e.academic_year === year.id)
-    if (list.length > 0 || (selectedYear === year.id && filteredEvents.length === 0)) {
+    const list = sortedEvents.filter((e) => e.academic_year === year.id)
+    if (list.length > 0 || (selectedYear === year.id && sortedEvents.length === 0)) {
       groupedEvents.push({ yearConfig: year, list })
     }
   }
@@ -470,7 +477,7 @@ export default function TimelineList({
       {/* Add Event Modal */}
       {isAddModalOpen && (
         <AddEventModal
-          defaultYear={selectedYear === 'all' ? 'lop_6' : selectedYear}
+          defaultYear={selectedYear === 'all' ? 'reunion' : selectedYear}
           onClose={() => setIsAddModalOpen(false)}
         />
       )}
