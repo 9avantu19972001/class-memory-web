@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import {
   Search,
@@ -55,6 +56,7 @@ export default function MembersList({
   isApprovedMember?: boolean
   currentUserProfile?: Member | null
 }) {
+  const [mounted, setMounted] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [membersList, setMembersList] = useState<Member[]>(members)
   const [approvingId, setApprovingId] = useState<string | null>(null)
@@ -63,6 +65,10 @@ export default function MembersList({
   const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false)
   const [deniedTargetName, setDeniedTargetName] = useState<string | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     setMembersList(members)
@@ -446,15 +452,15 @@ export default function MembersList({
       />
 
       {/* Access Denied Modal for Non-members */}
-      {showAccessDeniedModal && (
+      {showAccessDeniedModal && mounted && createPortal(
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setShowAccessDeniedModal(false)}
         >
           <div
-            className="bg-card w-full max-w-md rounded-3xl border border-border shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 relative"
+            className="bg-card w-full max-w-md rounded-3xl border border-border shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 relative my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -504,13 +510,13 @@ export default function MembersList({
                 <>
                   <a
                     href="/login"
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs sm:text-sm text-center shadow-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs sm:text-sm text-center shadow-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>Đăng nhập ngay</span>
                   </a>
                   <a
                     href="/register"
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-secondary border border-border text-foreground font-semibold text-xs sm:text-sm text-center hover:bg-secondary/80 transition-all flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-secondary border border-border text-foreground font-semibold text-xs sm:text-sm text-center hover:bg-secondary/80 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>Đăng ký thành viên</span>
                   </a>
@@ -526,7 +532,8 @@ export default function MembersList({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

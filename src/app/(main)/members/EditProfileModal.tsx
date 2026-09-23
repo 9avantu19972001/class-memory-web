@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { Edit3, X, Loader2, Upload, Camera, Trash2, Link as LinkIcon, Phone, Shield, Lock, Eye, EyeOff } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
@@ -33,6 +34,7 @@ export default function EditProfileModal({
   trigger?: React.ReactNode
   isAdmin?: boolean
 }) {
+  const [mounted, setMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '')
@@ -44,6 +46,10 @@ export default function EditProfileModal({
   const router = useRouter()
   const supabase = createClient()
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Sync state whenever modal opens or profile changes
   useEffect(() => {
     if (isOpen) {
@@ -54,6 +60,21 @@ export default function EditProfileModal({
       setUploadError(null)
     }
   }, [isOpen, profile])
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setIsOpen(false)
+      }
+      window.addEventListener('keydown', handleKeyDown)
+      return () => {
+        document.body.style.overflow = 'unset'
+        window.removeEventListener('keydown', handleKeyDown)
+      }
+    }
+  }, [isOpen])
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -134,45 +155,37 @@ export default function EditProfileModal({
     }
   }
 
-  return (
-    <>
-      {trigger ? (
-        <span onClick={() => setIsOpen(true)} className="inline-block cursor-pointer">
-          {trigger}
-        </span>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-all shadow-sm text-sm"
-        >
-          <Edit3 className="w-4 h-4" />
-          <span>Chỉnh sửa hồ sơ kỷ yếu</span>
-        </button>
-      )}
+  const modalContent = (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-profile-title"
+      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setIsOpen(false)
+      }}
+    >
+      <div className="bg-card w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-200 border border-border max-h-[92vh] flex flex-col">
+        <div className="flex justify-between items-center p-4 sm:p-5 border-b border-border bg-secondary/15 flex-shrink-0">
+          <div>
+            <h2 id="edit-profile-title" className="text-lg font-bold font-serif text-foreground">
+              Chỉnh sửa hồ sơ kỷ yếu
+            </h2>
+            <p className="text-xs text-foreground/60">
+              {profile.full_name ? `Thành viên: ${profile.full_name}` : 'Cập nhật thông tin thành viên'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            className="text-foreground/50 hover:text-foreground p-1.5 rounded-full hover:bg-secondary/40 transition-colors cursor-pointer"
+            title="Đóng"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-card w-full max-w-lg rounded-2xl shadow-xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200 border border-border">
-            <div className="flex justify-between items-center p-4 border-b border-border bg-secondary/10">
-              <div>
-                <h2 className="text-lg font-bold font-serif text-foreground">
-                  Chỉnh sửa hồ sơ kỷ yếu
-                </h2>
-                <p className="text-xs text-foreground/60">
-                  {profile.full_name ? `Thành viên: ${profile.full_name}` : 'Cập nhật thông tin thành viên'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="text-foreground/50 hover:text-foreground p-1.5 rounded-full hover:bg-secondary/30 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs sm:text-sm">
               <input type="hidden" name="target_user_id" value={profile.id} />
 
               {/* Avatar Upload & URL */}
@@ -463,14 +476,14 @@ export default function EditProfileModal({
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 rounded-lg font-medium text-sm text-foreground hover:bg-secondary/40 transition-colors"
+                  className="px-4 py-2 rounded-lg font-medium text-sm text-foreground hover:bg-secondary/40 transition-colors cursor-pointer"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading || isUploadingAvatar}
-                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm cursor-pointer"
                 >
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>Lưu hồ sơ</span>
@@ -479,7 +492,26 @@ export default function EditProfileModal({
             </form>
           </div>
         </div>
+  )
+
+  return (
+    <>
+      {trigger ? (
+        <span onClick={() => setIsOpen(true)} className="inline-block cursor-pointer">
+          {trigger}
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-all shadow-sm text-sm cursor-pointer"
+        >
+          <Edit3 className="w-4 h-4" />
+          <span>Chỉnh sửa hồ sơ kỷ yếu</span>
+        </button>
       )}
+
+      {isOpen && mounted && createPortal(modalContent, document.body)}
     </>
   )
 }
