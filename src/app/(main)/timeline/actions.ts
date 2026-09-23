@@ -85,8 +85,8 @@ export async function updateTimelineEvent(formData: FormData) {
     if (!event) throw new Error('Sự kiện không tồn tại.')
 
     const isAuthor = event.author_id === user.id
-    if (!isAuthor && !isAdmin) {
-      throw new Error('Bạn không có quyền chỉnh sửa sự kiện này.')
+    if (!isAuthor) {
+      throw new Error('Chỉ người tạo bài viết mới có quyền chỉnh sửa bài viết của mình.')
     }
 
     const title = (formData.get('title') as string)?.trim()
@@ -127,7 +127,7 @@ export async function updateTimelineEvent(formData: FormData) {
 
 export async function deleteTimelineEvent(eventId: string) {
   try {
-    const { supabase, user, isAdmin } = await getAuthUser()
+    const { supabase, user } = await getAuthUser()
 
     const { data: event } = await supabase
       .from('timeline_events')
@@ -138,8 +138,8 @@ export async function deleteTimelineEvent(eventId: string) {
     if (!event) throw new Error('Sự kiện không tồn tại.')
 
     const isAuthor = event.author_id === user.id
-    if (!isAuthor && !isAdmin) {
-      throw new Error('Bạn không có quyền xóa sự kiện này.')
+    if (!isAuthor) {
+      throw new Error('Chỉ người tạo bài viết mới có quyền xóa bài viết của mình.')
     }
 
     const { error } = await supabase

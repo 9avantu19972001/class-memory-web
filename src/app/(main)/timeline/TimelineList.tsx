@@ -298,8 +298,8 @@ export default function TimelineList({
                       const isEven = idx % 2 === 0
                       const categoryConfig = getCategoryConfig(item.category)
                       const isAuthor = item.author_id === currentUserId
-                      const canEdit = isAuthor || isAdmin
-                      const canDelete = isAuthor || isAdmin
+                      const canEdit = isAuthor
+                      const canDelete = isAuthor
 
                       const likeState = optimisticLikes[item.id] ?? {
                         hasLiked: item.has_liked ?? false,
