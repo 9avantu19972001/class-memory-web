@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, MapPin, Briefcase, ExternalLink, Quote, GraduationCap, Edit3 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Search, MapPin, Briefcase, ExternalLink, Quote, GraduationCap, Edit3, UserCheck, Loader2 } from 'lucide-react'
 import EditProfileModal from './EditProfileModal'
+import { approveMember } from '../admin/actions'
 
 interface Member {
   id: string
@@ -28,8 +30,31 @@ export default function MembersList({
   isAdmin?: boolean
 }) {
   const [searchTerm, setSearchTerm] = useState('')
+  const [membersList, setMembersList] = useState<Member[]>(members)
+  const [approvingId, setApprovingId] = useState<string | null>(null)
+  const router = useRouter()
 
-  const filteredMembers = members.filter((member) => {
+  const handleApprove = async (memberId: string, name: string) => {
+    if (!confirm(`Phê duyệt cho "${name}" chính thức tham gia lớp 9A?`)) return
+
+    setApprovingId(memberId)
+    // Optimistic UI
+    setMembersList((prev) =>
+      prev.map((m) => (m.id === memberId ? { ...m, is_approved: true } : m))
+    )
+
+    const res = await approveMember(memberId)
+    setApprovingId(null)
+
+    if (!res.success) {
+      alert(res.error)
+      setMembersList(members)
+    } else {
+      router.refresh()
+    }
+  }
+
+  const filteredMembers = membersList.filter((member) => {
     const term = searchTerm.toLowerCase().trim()
     if (!term) return true
     const nameMatch = member.full_name?.toLowerCase().includes(term)
@@ -57,7 +82,10 @@ export default function MembersList({
 
         {isAdmin && (
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-medium border border-amber-300 dark:border-amber-800/50 self-start sm:self-auto">
-            <span>🛡️ Bạn có quyền Admin: Có thể chỉnh sửa tất cả hồ sơ</span>
+            <span>🛡️ Quyền Admin: Có thể bấm duyệt ngay hoặc vào</span>
+            <a href="/admin" className="font-bold underline hover:text-amber-950">
+              Trang Quản Trị
+            </a>
           </div>
         )}
       </div>
@@ -88,9 +116,26 @@ export default function MembersList({
                   </span>
                 )}
                 {member.is_approved === false && (
-                  <span className="absolute bottom-2 left-3 text-[10px] font-medium bg-rose-100 text-rose-800 border border-rose-200 px-2 py-0.5 rounded-full">
-                    Chờ duyệt
-                  </span>
+                  isAdmin ? (
+                    <button
+                      type="button"
+                      disabled={approvingId === member.id}
+                      onClick={() => handleApprove(member.id, displayName)}
+                      className="absolute bottom-2 left-3 inline-flex items-center gap-1 text-[11px] font-bold bg-amber-100 hover:bg-emerald-600 text-amber-900 hover:text-white border border-amber-300 hover:border-emerald-600 px-2.5 py-0.5 rounded-full shadow-xs transition-all hover:scale-105 active:scale-95 cursor-pointer z-10"
+                      title="Bấm để phê duyệt ngay thành viên này"
+                    >
+                      {approvingId === member.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <UserCheck className="w-3 h-3" />
+                      )}
+                      <span>Chờ duyệt (Bấm duyệt)</span>
+                    </button>
+                  ) : (
+                    <span className="absolute bottom-2 left-3 text-[10px] font-medium bg-rose-100 text-rose-800 border border-rose-200 px-2 py-0.5 rounded-full">
+                      Chờ duyệt
+                    </span>
+                  )
                 )}
 
                 <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-md bg-secondary/30 mb-3 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
@@ -171,9 +216,27 @@ export default function MembersList({
                 {/* Edit Button directly on each member card */}
                 {(isCurrentUser || isAdmin) && (
                   <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto">
-                    <span className="text-[11px] text-foreground/50 font-medium">
-                      {isCurrentUser ? 'Hồ sơ của bạn' : 'Quản trị viên'}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-foreground/50 font-medium">
+                        {isCurrentUser ? 'Hồ sơ của bạn' : 'Quản trị viên'}
+                      </span>
+                      {isAdmin && member.is_approved === false && (
+                        <button
+                          type="button"
+                          disabled={approvingId === member.id}
+                          onClick={() => handleApprove(member.id, displayName)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs"
+                          title={`Phê duyệt ${displayName} vào lớp`}
+                        >
+                          {approvingId === member.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <UserCheck className="w-3 h-3" />
+                          )}
+                          <span>Duyệt</span>
+                        </button>
+                      )}
+                    </div>
                     <EditProfileModal
                       profile={member}
                       isAdmin={isAdmin}
