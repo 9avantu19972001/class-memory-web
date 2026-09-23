@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { logout } from '../(auth)/actions'
 import { Shield } from 'lucide-react'
 import BottomNav from './BottomNav'
+import MusicPlayer from '@/components/MusicPlayer'
 
 export default async function MainLayout({
   children,
@@ -102,6 +103,9 @@ export default async function MainLayout({
 
       {/* Mobile Bottom Navigation Bar */}
       <BottomNav isAdmin={isAdmin} pendingCount={pendingCount} />
+
+      {/* Floating Nostalgic Music Player */}
+      <MusicPlayer />
     </div>
   )
 }
