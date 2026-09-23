@@ -225,8 +225,33 @@ export default function GuestbookList({
     setCommentInputs((prev) => ({ ...prev, [entryId]: '' }))
 
     try {
-      await addGuestbookComment(entryId, content)
-      router.refresh()
+      const res = await addGuestbookComment(entryId, content)
+      if (!res.success) {
+        alert(res.error || 'Không thể gửi bình luận.')
+        setLocalComments((prev) => ({
+          ...prev,
+          [entryId]: prevList,
+        }))
+      } else if (res.comment) {
+        // Safely extract user whether returned as object or array
+        const rawUser = (res.comment as any).user
+        const commentUser = Array.isArray(rawUser) ? rawUser[0] : rawUser
+        const mappedComment: GuestbookComment = {
+          id: res.comment.id,
+          content: res.comment.content,
+          created_at: res.comment.created_at,
+          user_id: res.comment.user_id,
+          user: commentUser || null,
+        }
+
+        setLocalComments((prev) => ({
+          ...prev,
+          [entryId]: (prev[entryId] || []).map((c) =>
+            c.id === tempId ? mappedComment : c
+          ),
+        }))
+        router.refresh()
+      }
     } catch (err: any) {
       console.error(err)
       alert(err?.message || 'Không thể gửi bình luận.')
@@ -249,9 +274,18 @@ export default function GuestbookList({
     }))
 
     try {
-      await deleteGuestbookComment(commentId)
-      router.refresh()
+      const res = await deleteGuestbookComment(commentId)
+      if (!res.success) {
+        alert(res.error || 'Không thể xóa bình luận.')
+        setLocalComments((prev) => ({
+          ...prev,
+          [entryId]: currentList,
+        }))
+      } else {
+        router.refresh()
+      }
     } catch (err: any) {
+      console.error(err)
       alert(err?.message || 'Không thể xóa bình luận.')
       setLocalComments((prev) => ({
         ...prev,
@@ -624,7 +658,7 @@ export default function GuestbookList({
                               </span>
                             </div>
                           </div>
-                          {(c.user_id === currentUserId || isAdmin) && (
+                          {(c.user_id === currentUserId || entry.user_id === currentUserId || isAdmin) && (
                             <button
                               onClick={() => handleDeleteComment(c.id, entry.id)}
                               className="opacity-0 group-hover/c:opacity-100 p-1 text-red-500 hover:text-red-700 transition-opacity flex-shrink-0"

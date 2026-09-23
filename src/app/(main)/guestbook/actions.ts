@@ -140,7 +140,6 @@ export async function deleteGuestbookEntry(entryId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Vui lòng đăng nhập.')
 
-  // Fetch entry to check ownership or admin
   const { data: entry } = await supabase
     .from('guestbook_entries')
     .select('user_id')
@@ -233,7 +232,7 @@ export async function toggleGuestbookReaction(entryId: string, type: string = 'h
 export async function addGuestbookComment(entryId: string, content: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Vui lòng đăng nhập để bình luận.')
+  if (!user) return { success: false, error: 'Vui lòng đăng nhập để bình luận.' }
 
   // Check if approved
   const { data: profile } = await supabase
@@ -243,38 +242,61 @@ export async function addGuestbookComment(entryId: string, content: string) {
     .single()
 
   if (!profile?.is_approved && profile?.role !== 'admin') {
-    throw new Error('Tài khoản của bạn cần được Admin duyệt trước khi bình luận.')
+    return { success: false, error: 'Tài khoản của bạn cần được Admin duyệt trước khi bình luận.' }
   }
 
   const trimmed = content.trim()
-  if (!trimmed) throw new Error('Nội dung bình luận không được để trống.')
+  if (!trimmed) return { success: false, error: 'Nội dung bình luận không được để trống.' }
 
-  const { error } = await supabase.from('guestbook_comments').insert({
-    entry_id: entryId,
-    user_id: user.id,
-    content: trimmed,
-  })
+  const { data: inserted, error } = await supabase
+    .from('guestbook_comments')
+    .insert({
+      entry_id: entryId,
+      user_id: user.id,
+      content: trimmed,
+    })
+    .select(`
+      id,
+      content,
+      created_at,
+      user_id,
+      user:profiles!user_id(id, full_name, nickname, avatar_url)
+    `)
+    .single()
 
   if (error) {
     console.error('Error adding guestbook comment:', error)
-    throw new Error('Không thể gửi bình luận: ' + error.message)
+    return { success: false, error: 'Không thể gửi bình luận: ' + error.message }
   }
 
   revalidatePath('/guestbook')
+  return { success: true, comment: inserted }
 }
 
 export async function deleteGuestbookComment(commentId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Vui lòng đăng nhập.')
+  if (!user) return { success: false, error: 'Vui lòng đăng nhập.' }
 
-  const { data: comment } = await supabase
+  if (!commentId || commentId.startsWith('temp-')) {
+    return { success: true }
+  }
+
+  // Fetch comment and entry info
+  const { data: comment, error: fetchError } = await supabase
     .from('guestbook_comments')
-    .select('user_id')
+    .select(`
+      user_id,
+      entry_id,
+      guestbook_entries!entry_id(user_id)
+    `)
     .eq('id', commentId)
     .single()
 
-  if (!comment) throw new Error('Không tìm thấy bình luận.')
+  if (fetchError || !comment) {
+    console.warn('Comment not found or already deleted:', fetchError?.message)
+    return { success: true }
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -283,22 +305,23 @@ export async function deleteGuestbookComment(commentId: string) {
     .single()
 
   const isAdmin = profile?.role === 'admin'
-  const isAuthor = comment.user_id === user.id
+  const isCommentAuthor = comment.user_id === user.id
+  const isEntryOwner = (comment as any).guestbook_entries?.user_id === user.id
 
-  if (!isAuthor && !isAdmin) {
-    throw new Error('Bạn không có quyền xóa bình luận này.')
+  if (!isCommentAuthor && !isEntryOwner && !isAdmin) {
+    return { success: false, error: 'Bạn không có quyền xóa bình luận này.' }
   }
 
-  const { error } = await supabase
+  const { error: deleteError } = await supabase
     .from('guestbook_comments')
     .delete()
     .eq('id', commentId)
 
-  if (error) {
-    console.error('Error deleting comment:', error)
-    throw new Error('Không thể xóa bình luận.')
+  if (deleteError) {
+    console.error('Error deleting comment:', deleteError)
+    return { success: false, error: 'Không thể xóa bình luận: ' + deleteError.message }
   }
 
   revalidatePath('/guestbook')
+  return { success: true }
 }
-
