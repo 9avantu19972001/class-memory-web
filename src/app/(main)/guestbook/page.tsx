@@ -29,22 +29,39 @@ export default async function GuestbookPage() {
     classmatesMap[c.id] = { full_name: c.full_name, nickname: c.nickname }
   })
 
-  // 3. Fetch guestbook entries
-  let query = supabase
+  // 3. Fetch guestbook entries (with comments)
+  let { data: rawEntries, error } = await supabase
     .from('guestbook_entries')
     .select(`
       *,
       author:profiles!user_id(id, full_name, nickname, avatar_url, school_role),
-      reactions:guestbook_reactions(id, user_id, type)
+      reactions:guestbook_reactions(id, user_id, type),
+      comments:guestbook_comments(
+        id,
+        content,
+        created_at,
+        user_id,
+        user:profiles!user_id(id, full_name, nickname, avatar_url)
+      )
     `)
     .order('is_pinned', { ascending: false })
     .order('created_at', { ascending: false })
 
-  const { data: rawEntries, error } = await query
-
   if (error) {
-    console.error('Error fetching guestbook entries:', error)
+    console.warn('Query with comments failed, trying without comments join:', error.message)
+    const fallback = await supabase
+      .from('guestbook_entries')
+      .select(`
+        *,
+        author:profiles!user_id(id, full_name, nickname, avatar_url, school_role),
+        reactions:guestbook_reactions(id, user_id, type)
+      `)
+      .order('is_pinned', { ascending: false })
+      .order('created_at', { ascending: false })
+
+    rawEntries = fallback.data
   }
+
 
   // 4. In-memory fallback filter for 3 visibility modes (ensures strict privacy even before SQL RLS is run)
   const entries: GuestbookEntry[] = (rawEntries || []).filter((entry: any) => {

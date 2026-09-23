@@ -153,3 +153,76 @@ export async function toggleGuestbookReaction(entryId: string, type: string = 'h
 
   revalidatePath('/guestbook')
 }
+
+export async function addGuestbookComment(entryId: string, content: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Vui lòng đăng nhập để bình luận.')
+
+  // Check if approved
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_approved, role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.is_approved && profile?.role !== 'admin') {
+    throw new Error('Tài khoản của bạn cần được Admin duyệt trước khi bình luận.')
+  }
+
+  const trimmed = content.trim()
+  if (!trimmed) throw new Error('Nội dung bình luận không được để trống.')
+
+  const { error } = await supabase.from('guestbook_comments').insert({
+    entry_id: entryId,
+    user_id: user.id,
+    content: trimmed,
+  })
+
+  if (error) {
+    console.error('Error adding guestbook comment:', error)
+    throw new Error('Không thể gửi bình luận: ' + error.message)
+  }
+
+  revalidatePath('/guestbook')
+}
+
+export async function deleteGuestbookComment(commentId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Vui lòng đăng nhập.')
+
+  const { data: comment } = await supabase
+    .from('guestbook_comments')
+    .select('user_id')
+    .eq('id', commentId)
+    .single()
+
+  if (!comment) throw new Error('Không tìm thấy bình luận.')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = profile?.role === 'admin'
+  const isAuthor = comment.user_id === user.id
+
+  if (!isAuthor && !isAdmin) {
+    throw new Error('Bạn không có quyền xóa bình luận này.')
+  }
+
+  const { error } = await supabase
+    .from('guestbook_comments')
+    .delete()
+    .eq('id', commentId)
+
+  if (error) {
+    console.error('Error deleting comment:', error)
+    throw new Error('Không thể xóa bình luận.')
+  }
+
+  revalidatePath('/guestbook')
+}
+
