@@ -569,22 +569,34 @@ export default function AdminDashboard({
                       {/* Action Buttons */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {/* 1-Click Approve Button */}
+                          {/* 1-Click Approve & Delete Buttons for Pending Profiles */}
                           {!member.is_approved ? (
-                            <button
-                              type="button"
-                              disabled={isProcessing}
-                              onClick={() => handleApprove(member.id)}
-                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-                              title="Duyệt thành viên này tham gia lớp 9A"
-                            >
-                              {isProcessing ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <UserCheck className="w-3.5 h-3.5" />
-                              )}
-                              <span>Phê duyệt</span>
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                disabled={isProcessing}
+                                onClick={() => handleApprove(member.id)}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                                title="Duyệt thành viên này tham gia lớp 9A"
+                              >
+                                {isProcessing ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <UserCheck className="w-3.5 h-3.5" />
+                                )}
+                                <span>Phê duyệt</span>
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isProcessing}
+                                onClick={() => handleDelete(member.id, member.full_name)}
+                                className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1 shadow-xs transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                                title="Xóa vĩnh viễn hồ sơ chờ duyệt này"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                                <span>Xóa</span>
+                              </button>
+                            </>
                           ) : (
                             /* Revoke Button */
                             !isCurrent && (
@@ -740,19 +752,31 @@ export default function AdminDashboard({
                   {/* Action buttons on mobile */}
                   <div className="pt-2 border-t border-border flex items-center justify-between gap-2">
                     {!member.is_approved ? (
-                      <button
-                        type="button"
-                        disabled={isProcessing}
-                        onClick={() => handleApprove(member.id)}
-                        className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
-                      >
-                        {isProcessing ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <UserCheck className="w-3.5 h-3.5" />
-                        )}
-                        <span>Phê duyệt ngay</span>
-                      </button>
+                      <div className="flex-1 flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={isProcessing}
+                          onClick={() => handleApprove(member.id)}
+                          className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
+                        >
+                          {isProcessing ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <UserCheck className="w-3.5 h-3.5" />
+                          )}
+                          <span>Phê duyệt ngay</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isProcessing}
+                          onClick={() => handleDelete(member.id, member.full_name)}
+                          className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center justify-center gap-1 shadow-xs transition-colors disabled:opacity-50"
+                          title="Xóa vĩnh viễn hồ sơ chờ duyệt này"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Xóa</span>
+                        </button>
+                      </div>
                     ) : (
                       !isCurrent && (
                         <button

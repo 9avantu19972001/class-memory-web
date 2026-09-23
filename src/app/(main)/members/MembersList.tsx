@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Briefcase, ExternalLink, Quote, GraduationCap, Edit3, UserCheck, Loader2 } from 'lucide-react'
+import { Search, MapPin, Briefcase, ExternalLink, Quote, GraduationCap, Edit3, UserCheck, Trash2, Loader2 } from 'lucide-react'
 import EditProfileModal from './EditProfileModal'
-import { approveMember } from '../admin/actions'
+import { approveMember, deleteMember } from '../admin/actions'
 
 interface Member {
   id: string
@@ -32,6 +32,7 @@ export default function MembersList({
   const [searchTerm, setSearchTerm] = useState('')
   const [membersList, setMembersList] = useState<Member[]>(members)
   const [approvingId, setApprovingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const router = useRouter()
 
   const handleApprove = async (memberId: string, name: string) => {
@@ -45,6 +46,29 @@ export default function MembersList({
 
     const res = await approveMember(memberId)
     setApprovingId(null)
+
+    if (!res.success) {
+      alert(res.error)
+      setMembersList(members)
+    } else {
+      router.refresh()
+    }
+  }
+
+  const handleDelete = async (memberId: string, name: string) => {
+    if (
+      !confirm(
+        `CẢNH BÁO: Bạn có chắc chắn muốn XÓA vĩnh viễn hồ sơ chờ duyệt của "${name}" khỏi lớp? Hành động này không thể hoàn tác!`
+      )
+    )
+      return
+
+    setDeletingId(memberId)
+    // Optimistic UI
+    setMembersList((prev) => prev.filter((m) => m.id !== memberId))
+
+    const res = await deleteMember(memberId)
+    setDeletingId(null)
 
     if (!res.success) {
       alert(res.error)
@@ -117,20 +141,35 @@ export default function MembersList({
                 )}
                 {member.is_approved === false && (
                   isAdmin ? (
-                    <button
-                      type="button"
-                      disabled={approvingId === member.id}
-                      onClick={() => handleApprove(member.id, displayName)}
-                      className="absolute bottom-2 left-3 inline-flex items-center gap-1 text-[11px] font-bold bg-amber-100 hover:bg-emerald-600 text-amber-900 hover:text-white border border-amber-300 hover:border-emerald-600 px-2.5 py-0.5 rounded-full shadow-xs transition-all hover:scale-105 active:scale-95 cursor-pointer z-10"
-                      title="Bấm để phê duyệt ngay thành viên này"
-                    >
-                      {approvingId === member.id ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <UserCheck className="w-3 h-3" />
-                      )}
-                      <span>Chờ duyệt (Bấm duyệt)</span>
-                    </button>
+                    <div className="absolute bottom-2 left-3 flex items-center gap-1 z-10">
+                      <button
+                        type="button"
+                        disabled={approvingId === member.id || deletingId === member.id}
+                        onClick={() => handleApprove(member.id, displayName)}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold bg-amber-100 hover:bg-emerald-600 text-amber-900 hover:text-white border border-amber-300 hover:border-emerald-600 px-2.5 py-0.5 rounded-full shadow-xs transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50"
+                        title="Bấm để phê duyệt ngay thành viên này"
+                      >
+                        {approvingId === member.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <UserCheck className="w-3 h-3" />
+                        )}
+                        <span>Chờ duyệt</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={approvingId === member.id || deletingId === member.id}
+                        onClick={() => handleDelete(member.id, displayName)}
+                        className="inline-flex items-center justify-center p-1 rounded-full bg-rose-100 hover:bg-rose-600 text-rose-800 hover:text-white border border-rose-300 transition-all hover:scale-110 active:scale-95 cursor-pointer shadow-xs disabled:opacity-50"
+                        title={`Xóa vĩnh viễn hồ sơ chờ duyệt của ${displayName}`}
+                      >
+                        {deletingId === member.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3 h-3" />
+                        )}
+                      </button>
+                    </div>
                   ) : (
                     <span className="absolute bottom-2 left-3 text-[10px] font-medium bg-rose-100 text-rose-800 border border-rose-200 px-2 py-0.5 rounded-full">
                       Chờ duyệt
@@ -215,26 +254,42 @@ export default function MembersList({
 
                 {/* Edit Button directly on each member card */}
                 {(isCurrentUser || isAdmin) && (
-                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto">
-                    <div className="flex items-center gap-1.5">
+                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[11px] text-foreground/50 font-medium">
                         {isCurrentUser ? 'Hồ sơ của bạn' : 'Quản trị viên'}
                       </span>
                       {isAdmin && member.is_approved === false && (
-                        <button
-                          type="button"
-                          disabled={approvingId === member.id}
-                          onClick={() => handleApprove(member.id, displayName)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs"
-                          title={`Phê duyệt ${displayName} vào lớp`}
-                        >
-                          {approvingId === member.id ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          ) : (
-                            <UserCheck className="w-3 h-3" />
-                          )}
-                          <span>Duyệt</span>
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            disabled={approvingId === member.id || deletingId === member.id}
+                            onClick={() => handleApprove(member.id, displayName)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs disabled:opacity-50"
+                            title={`Phê duyệt ${displayName} vào lớp`}
+                          >
+                            {approvingId === member.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <UserCheck className="w-3 h-3" />
+                            )}
+                            <span>Duyệt</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={approvingId === member.id || deletingId === member.id}
+                            onClick={() => handleDelete(member.id, displayName)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all shadow-xs disabled:opacity-50"
+                            title={`Xóa vĩnh viễn hồ sơ chờ duyệt của ${displayName}`}
+                          >
+                            {deletingId === member.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3 h-3 text-rose-600" />
+                            )}
+                            <span>Xóa</span>
+                          </button>
+                        </div>
                       )}
                     </div>
                     <EditProfileModal
