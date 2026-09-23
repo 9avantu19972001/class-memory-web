@@ -497,7 +497,7 @@ export default function AdminDashboard({
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-foreground truncate text-sm">
+                              <span className="font-bold text-foreground text-sm break-words">
                                 {member.full_name || 'Chưa đặt tên'}
                               </span>
                               {isCurrent && (

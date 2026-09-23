@@ -191,9 +191,11 @@ export default function MembersList({
                   )}
                 </div>
 
-                <h3 className="font-serif font-bold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                  {displayName}
-                </h3>
+                <div className="min-h-[2.75rem] flex items-center justify-center w-full px-1">
+                  <h3 className="font-serif font-bold text-base sm:text-lg text-foreground group-hover:text-primary transition-colors text-center leading-snug break-words">
+                    {displayName}
+                  </h3>
+                </div>
 
                 {member.nickname && (
                   <p className="text-xs text-foreground/70 font-medium mt-0.5 bg-background px-2.5 py-0.5 rounded-full border border-border/60">
@@ -215,14 +217,14 @@ export default function MembersList({
                   {member.current_job && (
                     <div className="flex items-center gap-2">
                       <Briefcase className="w-3.5 h-3.5 text-foreground/50 flex-shrink-0" />
-                      <span className="line-clamp-1">{member.current_job}</span>
+                      <span className="break-words line-clamp-2">{member.current_job}</span>
                     </div>
                   )}
 
                   {member.location && (
                     <div className="flex items-center gap-2">
                       <MapPin className="w-3.5 h-3.5 text-foreground/50 flex-shrink-0" />
-                      <span className="line-clamp-1">{member.location}</span>
+                      <span className="break-words line-clamp-2">{member.location}</span>
                     </div>
                   )}
                 </div>

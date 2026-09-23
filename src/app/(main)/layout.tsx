@@ -78,7 +78,7 @@ export default async function MainLayout({
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-xs sm:text-sm text-foreground/70 hidden sm:inline-block truncate max-w-[150px]">
+                <span className="text-xs sm:text-sm text-foreground/70 hidden sm:inline-block truncate max-w-[240px]">
                   {profile?.full_name || 'Thành viên'}
                 </span>
                 <form action={logout}>
