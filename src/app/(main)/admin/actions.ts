@@ -107,6 +107,65 @@ export async function deleteMember(userId: string) {
       return { success: false, error: 'Bạn không thể xóa tài khoản của chính mình.' }
     }
 
+    // 1. Lấy danh sách album do user này tạo
+    const { data: userAlbums } = await supabase
+      .from('albums')
+      .select('id')
+      .eq('created_by', userId)
+
+    const albumIds = (userAlbums || []).map((a) => a.id)
+
+    // 2. Thu thập danh sách ảnh cần xóa khỏi Supabase Storage (ảnh do user upload hoặc trong album của user)
+    const photosToDelete: { storage_path: string; is_video: boolean }[] = []
+
+    // Ảnh do user upload vào bất kỳ album nào
+    const { data: userPhotos } = await supabase
+      .from('photos')
+      .select('storage_path, is_video')
+      .eq('uploaded_by', userId)
+
+    if (userPhotos) photosToDelete.push(...userPhotos)
+
+    // Ảnh trong các album do user tạo
+    if (albumIds.length > 0) {
+      const { data: albumPhotos } = await supabase
+        .from('photos')
+        .select('storage_path, is_video')
+        .in('album_id', albumIds)
+
+      if (albumPhotos) {
+        albumPhotos.forEach((p) => {
+          if (!photosToDelete.some((item) => item.storage_path === p.storage_path)) {
+            photosToDelete.push(p)
+          }
+        })
+      }
+    }
+
+    // Xóa file vật lý khỏi Supabase Storage bucket 'memories'
+    const filePaths = photosToDelete
+      .filter((p) => !p.is_video && p.storage_path && p.storage_path !== 'youtube')
+      .map((p) => p.storage_path)
+
+    if (filePaths.length > 0) {
+      try {
+        await supabase.storage.from('memories').remove(filePaths)
+      } catch (storageErr) {
+        console.error('Lỗi dọn dẹp storage files:', storageErr)
+      }
+    }
+
+    // 3. Xóa các bản ghi photos và albums trong DB trước để tránh lỗi khóa ngoại Foreign Key constraint
+    if (albumIds.length > 0) {
+      await supabase.from('photos').delete().in('album_id', albumIds)
+    }
+    await supabase.from('photos').delete().eq('uploaded_by', userId)
+
+    if (albumIds.length > 0) {
+      await supabase.from('albums').delete().in('id', albumIds)
+    }
+
+    // 4. Xóa profile của user (các bảng comments, reactions, guestbook sẽ tự cascade theo schema)
     const { error } = await supabase
       .from('profiles')
       .delete()
@@ -116,7 +175,9 @@ export async function deleteMember(userId: string) {
 
     revalidatePath('/admin')
     revalidatePath('/members')
+    revalidatePath('/albums')
     revalidatePath('/guestbook')
+    revalidatePath('/timeline')
     revalidatePath('/', 'layout')
     return { success: true }
   } catch (err: any) {
