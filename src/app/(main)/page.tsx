@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Image as ImageIcon, ArrowRight } from 'lucide-react'
 import Gallery from './albums/[id]/Gallery'
+import CountdownTimer from '@/components/CountdownTimer'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -76,8 +77,13 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* Countdown Timer Section */}
+        <section className="px-3 sm:px-4 -mt-10 sm:-mt-14 mb-8 sm:mb-12 max-w-4xl mx-auto w-full relative z-20">
+          <CountdownTimer />
+        </section>
+
         {/* Recent Memories Section */}
-        <section className="py-10 sm:py-16 px-3 sm:px-4 max-w-6xl mx-auto w-full min-w-0">
+        <section className="py-8 sm:py-12 px-3 sm:px-4 max-w-6xl mx-auto w-full min-w-0">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6 sm:mb-8">
             <div>
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">Khoảnh khắc mới nhất</h2>
