@@ -299,12 +299,12 @@ export default function GuestbookList({
   return (
     <div>
       {/* Search & Filter Tabs */}
-      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 w-full min-w-0">
         {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full text-xs font-medium no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 w-full min-w-0 max-w-full text-xs font-medium no-scrollbar scroll-touch">
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center justify-center ${
               activeTab === 'all'
                 ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                 : 'bg-card border border-border text-foreground/70 hover:bg-secondary/40'
@@ -314,7 +314,7 @@ export default function GuestbookList({
           </button>
           <button
             onClick={() => setActiveTab('public')}
-            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center gap-1.5 ${
               activeTab === 'public'
                 ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                 : 'bg-card border border-border text-foreground/70 hover:bg-secondary/40'
@@ -327,7 +327,7 @@ export default function GuestbookList({
             <>
               <button
                 onClick={() => setActiveTab('received')}
-                className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center gap-1.5 ${
                   activeTab === 'received'
                     ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                     : 'bg-card border border-border text-foreground/70 hover:bg-secondary/40'
@@ -338,7 +338,7 @@ export default function GuestbookList({
               </button>
               <button
                 onClick={() => setActiveTab('mine')}
-                className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center gap-1.5 ${
                   activeTab === 'mine'
                     ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                     : 'bg-card border border-border text-foreground/70 hover:bg-secondary/40'
@@ -350,7 +350,7 @@ export default function GuestbookList({
           )}
           <button
             onClick={() => setActiveTab('pinned')}
-            className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center gap-1.5 ${
               activeTab === 'pinned'
                 ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                 : 'bg-card border border-border text-foreground/70 hover:bg-secondary/40'
@@ -362,14 +362,14 @@ export default function GuestbookList({
         </div>
 
         {/* Search Input */}
-        <div className="relative min-w-[240px]">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
+        <div className="relative w-full md:w-64 min-w-0">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40 pointer-events-none" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Tìm theo nội dung, tác giả..."
-            className="w-full pl-9 pr-3 py-1.5 bg-card border border-border rounded-full text-xs focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-xs"
+            className="w-full pl-9 pr-3 py-1.5 bg-card border border-border rounded-full text-xs focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-xs min-h-[38px]"
           />
         </div>
       </div>

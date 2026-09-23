@@ -86,20 +86,20 @@ export default async function AlbumDetailsPage({
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8 w-full flex-1 flex flex-col">
-      <Link href="/albums" className="inline-flex items-center gap-2 text-foreground/60 hover:text-primary transition-colors mb-6 w-fit">
+    <main className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full flex-1 flex flex-col min-w-0">
+      <Link href="/albums" className="inline-flex items-center gap-2 text-foreground/60 hover:text-primary transition-colors mb-4 sm:mb-6 w-fit text-sm">
         <ArrowLeft className="w-4 h-4" />
         Quay lại Albums
       </Link>
 
-      <div className="bg-card p-6 rounded-2xl shadow-sm border border-border mb-8">
+      <div className="bg-card p-4 sm:p-6 rounded-2xl shadow-sm border border-border mb-6 sm:mb-8 w-full">
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-          <div>
-            <h1 className="text-3xl font-serif font-bold text-foreground">{album.title}</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground break-words">{album.title}</h1>
             {album.description && (
-              <p className="text-foreground/80 mt-2 font-handwriting text-xl">{album.description}</p>
+              <p className="text-foreground/80 mt-2 font-handwriting text-lg sm:text-xl break-words">{album.description}</p>
             )}
-            <div className="flex flex-wrap gap-4 mt-4 text-sm text-foreground/60">
+            <div className="flex flex-wrap gap-3 sm:gap-4 mt-3 sm:mt-4 text-xs sm:text-sm text-foreground/60">
               <div className="flex items-center gap-1.5">
                 <User className="w-4 h-4" />
                 <span>Bởi {album.profiles?.full_name || 'Khách'}</span>
@@ -111,7 +111,7 @@ export default async function AlbumDetailsPage({
             </div>
           </div>
           
-          <div className="flex-shrink-0 flex items-center gap-3">
+          <div className="flex-shrink-0 flex items-center gap-2.5 sm:gap-3 flex-wrap">
             <UploadPhotos albumId={album.id} isLoggedIn={!!user} isApproved={isApproved} />
             {user && (
               <DeleteAlbumButton albumId={album.id} />

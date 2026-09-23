@@ -190,22 +190,22 @@ export default function PhotoModal({
   const ytId = photo.is_video ? getYouTubeId(photo.video_url) : null
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-4">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 backdrop-blur-md p-1 sm:p-4">
       {/* Modal Container */}
-      <div className="relative w-full max-w-6xl h-[92vh] bg-card rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-border">
+      <div className="relative w-full max-w-6xl h-[96dvh] sm:h-[92vh] bg-card rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-border">
         {/* Close Button Top Right */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/60 text-white hover:bg-black/90 transition-colors shadow-lg"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 p-2 rounded-full bg-black/60 text-white hover:bg-black/90 transition-colors shadow-lg"
           title="Đóng (Esc)"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* LEFT COLUMN: Media Viewer */}
-        <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden min-h-[350px] lg:min-h-0">
+        <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden min-h-[200px] sm:min-h-[350px] lg:min-h-0">
           {photo.is_video ? (
-            <div className="w-full h-full flex items-center justify-center p-4">
+            <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
               {ytId ? (
                 <iframe
                   className="w-full aspect-video max-h-full rounded-xl"
@@ -230,10 +230,10 @@ export default function PhotoModal({
           {hasPrev && (
             <button
               onClick={onPrev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-all hover:scale-110 shadow-lg"
+              className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-all hover:scale-110 shadow-lg"
               title="Ảnh trước (Mũi tên trái)"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           )}
 
@@ -241,16 +241,16 @@ export default function PhotoModal({
           {hasNext && (
             <button
               onClick={onNext}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-all hover:scale-110 shadow-lg"
+              className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-all hover:scale-110 shadow-lg"
               title="Ảnh sau (Mũi tên phải)"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           )}
         </div>
 
         {/* RIGHT COLUMN: Info, Reactions & Comments */}
-        <div className="w-full lg:w-[420px] flex flex-col bg-card border-t lg:border-t-0 lg:border-l border-border h-[45vh] lg:h-full">
+        <div className="w-full lg:w-[420px] flex flex-col bg-card border-t lg:border-t-0 lg:border-l border-border flex-1 lg:h-full min-h-0">
           {/* Header: Uploader Info & Delete Photo */}
           <div className="p-4 border-b border-border flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">

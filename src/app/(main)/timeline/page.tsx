@@ -85,7 +85,7 @@ export default async function TimelinePage() {
   }))
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-8 sm:py-10">
+    <main className="max-w-5xl mx-auto px-3 sm:px-4 py-6 sm:py-10 w-full min-w-0">
       <TimelineList
         initialEvents={events}
         currentUserId={user?.id || null}

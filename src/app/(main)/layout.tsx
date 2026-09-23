@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { logout } from '../(auth)/actions'
-import { Home, Image as ImageIcon, Users, BookOpen, Shield, History } from 'lucide-react'
+import { Shield } from 'lucide-react'
+import BottomNav from './BottomNav'
 
 export default async function MainLayout({
   children,
@@ -41,15 +42,15 @@ export default async function MainLayout({
   const isAdmin = profile?.role === 'admin'
 
   return (
-    <div className="min-h-screen flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col pb-20 md:pb-0 w-full overflow-x-hidden">
       {user && profile && !profile.is_approved && (
-        <div className="bg-amber-100 text-amber-900 px-4 py-2 text-center text-sm font-medium border-b border-amber-200">
+        <div className="bg-amber-100 text-amber-900 px-3 sm:px-4 py-2 text-center text-xs sm:text-sm font-medium border-b border-amber-200">
           Tài khoản của bạn ({profile.full_name}) đang chờ Admin duyệt. Bạn có thể xem ảnh nhưng chưa thể tải ảnh lên.
         </div>
       )}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <a href="/" className="font-serif font-bold text-xl text-primary hover:opacity-80 transition-opacity flex items-center gap-2">
+      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-md border-b border-border w-full">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
+          <a href="/" className="font-serif font-bold text-lg sm:text-xl text-primary hover:opacity-80 transition-opacity flex items-center gap-2">
             <span>9A Memories</span>
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm">
@@ -73,14 +74,14 @@ export default async function MainLayout({
               </a>
             )}
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-sm text-foreground/70 hidden sm:inline-block">
+                <span className="text-xs sm:text-sm text-foreground/70 hidden sm:inline-block truncate max-w-[150px]">
                   {profile?.full_name || 'Thành viên'}
                 </span>
                 <form action={logout}>
-                  <button className="text-sm font-medium bg-secondary/50 hover:bg-secondary px-4 py-2 rounded-full transition-colors">
+                  <button className="text-xs sm:text-sm font-medium bg-secondary/50 hover:bg-secondary px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full transition-colors">
                     Đăng xuất
                   </button>
                 </form>
@@ -88,7 +89,7 @@ export default async function MainLayout({
             ) : (
               <a
                 href="/login"
-                className="text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 px-5 py-2 rounded-full transition-colors shadow-sm"
+                className="text-xs sm:text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full transition-colors shadow-sm"
               >
                 Đăng nhập
               </a>
@@ -99,45 +100,8 @@ export default async function MainLayout({
 
       {children}
 
-      {/* Mobile Bottom Navigation Bar (Modern Web Guidance) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border flex items-center justify-around py-2 px-1 shadow-lg">
-        <a href="/" className="flex flex-col items-center gap-0.5 text-foreground/70 hover:text-primary p-1.5 transition-colors">
-          <Home className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Trang chủ</span>
-        </a>
-        <a href="/timeline" className="flex flex-col items-center gap-0.5 text-foreground/70 hover:text-primary p-1.5 transition-colors">
-          <History className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Niên khóa</span>
-        </a>
-        <a href="/albums" className="flex flex-col items-center gap-0.5 text-foreground/70 hover:text-primary p-1.5 transition-colors">
-          <ImageIcon className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Albums</span>
-        </a>
-        <a href="/members" className="flex flex-col items-center gap-0.5 text-foreground/70 hover:text-primary p-1.5 transition-colors">
-          <Users className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Thành viên</span>
-        </a>
-        <a href="/guestbook" className="flex flex-col items-center gap-0.5 text-foreground/70 hover:text-primary p-1.5 transition-colors">
-          <BookOpen className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Lưu bút</span>
-        </a>
-        {isAdmin && (
-          <a
-            href="/admin"
-            className="relative flex flex-col items-center gap-0.5 text-purple-700 dark:text-purple-400 p-1.5 transition-colors"
-          >
-            <div className="relative">
-              <Shield className="w-5 h-5" />
-              {pendingCount > 0 && (
-                <span className="absolute -top-1 -right-2 px-1 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-white leading-none animate-pulse">
-                  {pendingCount}
-                </span>
-              )}
-            </div>
-            <span className="text-[10px] font-bold">Quản trị</span>
-          </a>
-        )}
-      </nav>
+      {/* Mobile Bottom Navigation Bar */}
+      <BottomNav isAdmin={isAdmin} pendingCount={pendingCount} />
     </div>
   )
 }

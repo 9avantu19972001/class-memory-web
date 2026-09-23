@@ -24,17 +24,17 @@ export default async function MembersPage() {
   const { data: members } = await query.order('created_at', { ascending: true })
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8 w-full flex-1">
+    <main className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full flex-1 min-w-0">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-card p-6 rounded-2xl border border-border shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8 bg-card p-5 sm:p-6 rounded-2xl border border-border shadow-sm w-full">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Users className="w-6 h-6 text-primary" />
-            <h1 className="text-3xl font-serif font-bold text-foreground">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground break-words">
               Thành viên Lớp 9A
             </h1>
           </div>
-          <p className="text-foreground/70 text-sm">
+          <p className="text-foreground/70 text-xs sm:text-sm">
             Danh bạ các thành viên cùng lưu giữ thanh xuân ({members?.length || 0} bạn)
           </p>
         </div>

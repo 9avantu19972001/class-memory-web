@@ -63,7 +63,7 @@ export default async function AdminPage() {
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8">
+    <main className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full min-w-0">
       <AdminDashboard
         initialProfiles={(profiles as ProfileItem[]) || []}
         currentUserId={user.id}

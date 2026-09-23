@@ -32,16 +32,18 @@ export default async function AlbumsPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8 w-full">
-      <div className="flex justify-between items-center mb-8">
+    <main className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full min-w-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-foreground">Album kỷ niệm</h1>
-          <p className="text-foreground/70 mt-1">Những khoảnh khắc được lưu giữ theo thời gian</p>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">Album kỷ niệm</h1>
+          <p className="text-foreground/70 text-xs sm:text-sm mt-1">Những khoảnh khắc được lưu giữ theo thời gian</p>
         </div>
-        <CreateAlbumModal isLoggedIn={!!user} isApproved={isApproved} />
+        <div className="self-stretch sm:self-auto flex items-center justify-end">
+          <CreateAlbumModal isLoggedIn={!!user} isApproved={isApproved} />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 w-full">
         {albums?.map((album, idx) => {
           const photoList = album.photos || []
           const photoCount = photoList.length

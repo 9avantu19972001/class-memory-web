@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito, Merriweather, Caveat, Patrick_Hand, Dancing_Script, Itim } from "next/font/google";
 import "./globals.css";
 
@@ -40,6 +40,13 @@ export const metadata: Metadata = {
   description: "Nơi lưu giữ thanh xuân và kỷ niệm",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -50,7 +57,7 @@ export default function RootLayout({
       lang="vi"
       className={`${nunito.variable} ${merriweather.variable} ${caveat.variable} ${patrickHand.variable} ${dancingScript.variable} ${itim.variable}`}
     >
-      <body className="antialiased min-h-screen bg-background text-foreground">
+      <body className="antialiased min-h-screen bg-background text-foreground overflow-x-hidden max-w-full">
         {children}
       </body>
     </html>

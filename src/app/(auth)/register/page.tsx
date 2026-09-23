@@ -9,8 +9,8 @@ export default async function RegisterPage({
   const params = await searchParams
   const error = params?.error
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-primary/10">
-      <div className="w-full max-w-md space-y-6 bg-card p-8 rounded-3xl shadow-sm border border-border">
+    <div className="flex min-h-screen flex-col items-center justify-center py-8 sm:py-12 px-3 sm:px-6 lg:px-8 bg-primary/10 w-full overflow-x-hidden">
+      <div className="w-full max-w-md space-y-6 bg-card p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-border">
         <div>
           <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-foreground font-serif">
             Đăng ký tham gia

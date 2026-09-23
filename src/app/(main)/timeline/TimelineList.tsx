@@ -159,20 +159,20 @@ export default function TimelineList({
   }
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-6 sm:space-y-8 pb-12 w-full min-w-0">
       {/* Hero Header */}
-      <div className="bg-card border border-border rounded-3xl p-6 sm:p-10 shadow-xs relative overflow-hidden text-center sm:text-left">
+      <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-10 shadow-xs relative overflow-hidden text-center sm:text-left w-full">
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-44 h-44 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2 max-w-2xl">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6 relative z-10">
+          <div className="space-y-2 max-w-2xl w-full">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Biên niên sử Kỷ niệm Lớp 9A</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-serif font-bold text-foreground">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-foreground break-words tracking-tight">
               Dòng Thời Gian Niên Khóa (1997 - 2001)
             </h1>
-            <p className="text-xs sm:text-sm text-foreground/70 leading-relaxed">
+            <p className="text-xs sm:text-sm text-foreground/70 leading-relaxed font-sans">
               Từng cột mốc 4 năm học cấp 2 thân thương: từ ngày đầu bỡ ngỡ bước chân vào trường lớp 6, những trò nghịch tuổi thơ lớp 7, nhịp xe đạp rong ruổi lớp 8, tiếng ve chia tay cuối mùa hè lớp 9, và những ngày hội ngộ sau nhiều năm xa cách.
             </p>
           </div>
@@ -188,7 +188,7 @@ export default function TimelineList({
                 setIsAddModalOpen(true)
               }
             }}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 flex-shrink-0"
+            className="w-full sm:w-auto px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl sm:rounded-2xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 flex-shrink-0 text-sm sm:text-base min-h-[44px]"
           >
             <Plus className="w-4 h-4" />
             <span>Kể lại một kỷ niệm xưa</span>
@@ -197,13 +197,13 @@ export default function TimelineList({
       </div>
 
       {/* Control Bar: Filter Tabs & Search */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4 w-full min-w-0">
         {/* Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-secondary/30 rounded-2xl overflow-x-auto border border-border">
+        <div className="flex items-center gap-1.5 p-1 bg-secondary/30 rounded-2xl overflow-x-auto border border-border w-full min-w-0 max-w-full no-scrollbar scroll-touch">
           <button
             type="button"
             onClick={() => setSelectedYear('all')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center justify-center ${
               selectedYear === 'all'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-foreground/70 hover:text-foreground'
@@ -219,7 +219,7 @@ export default function TimelineList({
                 key={y.id}
                 type="button"
                 onClick={() => setSelectedYear(y.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center gap-1.5 ${
                   selectedYear === y.id
                     ? 'bg-card text-foreground shadow-xs'
                     : 'text-foreground/70 hover:text-foreground'
@@ -234,14 +234,14 @@ export default function TimelineList({
         </div>
 
         {/* Search Input */}
-        <div className="relative w-full lg:w-72">
+        <div className="relative w-full lg:w-72 min-w-0">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40 pointer-events-none" />
           <input
             type="text"
             placeholder="Tìm theo sự kiện, kỷ niệm, bạn bè..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-card border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-foreground/40"
+            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-card border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-foreground/40 min-h-[38px]"
           />
         </div>
       </div>
@@ -273,27 +273,27 @@ export default function TimelineList({
             if (list.length === 0) return null
 
             return (
-              <div key={yearConfig.id} className="relative">
+              <div key={yearConfig.id} className="relative w-full min-w-0">
                 {/* Year Header Banner */}
-                <div className="flex items-center gap-3 mb-10">
+                <div className="flex items-center gap-2 sm:gap-3 mb-6 sm:mb-10 w-full min-w-0">
                   <div
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl border font-serif font-bold text-sm sm:text-base shadow-xs ${yearConfig.badgeColor}`}
+                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border font-serif font-bold text-xs sm:text-base shadow-xs shrink-0 max-w-full ${yearConfig.badgeColor}`}
                   >
-                    <span className="text-xl">{yearConfig.icon}</span>
+                    <span className="text-lg sm:text-xl">{yearConfig.icon}</span>
                     <span>{yearConfig.title}</span>
-                    <span className="text-xs opacity-75 font-sans font-normal ml-1">
+                    <span className="text-[11px] sm:text-xs opacity-75 font-sans font-normal ml-0.5 sm:ml-1 whitespace-nowrap">
                       ({yearConfig.timeRange})
                     </span>
                   </div>
-                  <div className="flex-1 h-px bg-border/80" />
+                  <div className="flex-1 h-px bg-border/80 min-w-2" />
                 </div>
 
                 {/* Vertical Timeline Nodes */}
-                <div className="relative">
+                <div className="relative w-full min-w-0">
                   {/* Central Timeline Line (Desktop: centered, Mobile: left aligned) */}
-                  <div className="absolute top-0 bottom-0 left-4 md:left-1/2 md:-translate-x-1/2 w-0.5 bg-border/90 border-l border-dashed border-primary/30 pointer-events-none" />
+                  <div className="absolute top-0 bottom-0 left-3 sm:left-4 md:left-1/2 md:-translate-x-1/2 w-0.5 bg-border/90 border-l border-dashed border-primary/30 pointer-events-none" />
 
-                  <div className="space-y-12">
+                  <div className="space-y-8 sm:space-y-12 w-full min-w-0">
                     {list.map((item, idx) => {
                       const isEven = idx % 2 === 0
                       const categoryConfig = getCategoryConfig(item.category)
@@ -320,29 +320,29 @@ export default function TimelineList({
                           key={item.id}
                           className={`relative flex flex-col md:flex-row items-start ${
                             isEven ? 'md:flex-row' : 'md:flex-row-reverse'
-                          } gap-6 md:gap-12`}
+                          } gap-4 md:gap-12 w-full min-w-0`}
                         >
                           {/* Timeline Dot with Year Icon */}
-                          <div className="absolute left-4 -translate-x-1/2 md:left-1/2 md:-translate-x-1/2 top-4 w-7 h-7 rounded-full bg-card border-2 border-primary shadow-sm flex items-center justify-center text-xs z-10">
-                            <span>{yearConfig.icon}</span>
+                          <div className="absolute left-3 -translate-x-1/2 sm:left-4 sm:-translate-x-1/2 md:left-1/2 md:-translate-x-1/2 top-4 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-card border-2 border-primary shadow-sm flex items-center justify-center text-xs z-10">
+                            <span className="text-[11px] sm:text-xs">{yearConfig.icon}</span>
                           </div>
 
                           {/* Content Card (Left or Right on desktop, indented on mobile) */}
                           <div
-                            className={`w-full md:w-[calc(50%-2rem)] pl-10 md:pl-0 ${
+                            className={`w-full md:w-[calc(50%-2rem)] pl-7 sm:pl-10 md:pl-0 min-w-0 ${
                               isEven ? 'md:pr-4' : 'md:pl-4'
                             }`}
                           >
-                            <div className="bg-card rounded-3xl p-6 border border-border shadow-md hover:shadow-xl transition-all duration-300 relative group overflow-hidden">
+                            <div className="bg-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-border shadow-md hover:shadow-xl transition-all duration-300 relative group overflow-hidden w-full min-w-0">
                               {/* Top Bar: Category badge & Date */}
-                              <div className="flex items-center justify-between gap-2 mb-3">
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-secondary/40 text-foreground/80 border border-border">
+                              <div className="flex items-center justify-between gap-2 mb-2.5 sm:mb-3 flex-wrap">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-secondary/40 text-foreground/80 border border-border">
                                   <span>{categoryConfig.icon}</span>
                                   <span>{categoryConfig.label}</span>
                                 </span>
 
                                 {formattedDate && (
-                                  <span className="text-[11px] text-foreground/60 flex items-center gap-1">
+                                  <span className="text-[10px] sm:text-[11px] text-foreground/60 flex items-center gap-1">
                                     <Calendar className="w-3 h-3 text-primary/70" />
                                     <span>{formattedDate}</span>
                                   </span>
@@ -350,28 +350,28 @@ export default function TimelineList({
                               </div>
 
                               {/* Title */}
-                              <h3 className="text-lg sm:text-xl font-bold font-serif text-foreground mb-2.5 leading-snug">
+                              <h3 className="text-base sm:text-xl font-bold font-serif text-foreground mb-2 leading-snug break-words">
                                 {item.title}
                               </h3>
 
                               {/* Description */}
-                              <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line mb-4 font-sans">
+                              <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed whitespace-pre-line mb-3.5 font-sans break-words">
                                 {item.description}
                               </p>
 
                               {/* Polaroid Image Preview (if attached) */}
                               {item.image_url && (
-                                <div className="mb-4">
+                                <div className="mb-3.5">
                                   <div
                                     onClick={() => setZoomedImage(item.image_url)}
-                                    className="cursor-pointer group/img relative rounded-2xl overflow-hidden border border-border bg-black/5 p-2 bg-white/70 dark:bg-card shadow-xs hover:shadow-md transition-shadow"
+                                    className="cursor-pointer group/img relative rounded-xl sm:rounded-2xl overflow-hidden border border-border bg-black/5 p-1.5 sm:p-2 bg-white/70 dark:bg-card shadow-xs hover:shadow-md transition-shadow"
                                   >
                                     <img
                                       src={item.image_url}
                                       alt={item.title}
-                                      className="w-full max-h-72 object-cover rounded-xl transition-transform duration-300 group-hover/img:scale-[1.02]"
+                                      className="w-full max-h-64 sm:max-h-72 object-cover rounded-lg sm:rounded-xl transition-transform duration-300 group-hover/img:scale-[1.02]"
                                     />
-                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white rounded-xl">
+                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white rounded-lg sm:rounded-xl">
                                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-xs text-xs font-semibold">
                                         <ZoomIn className="w-3.5 h-3.5" />
                                         <span>Phóng to ảnh</span>
@@ -382,7 +382,7 @@ export default function TimelineList({
                               )}
 
                               {/* Card Footer: Author & Actions */}
-                              <div className="pt-3 border-t border-border flex items-center justify-between gap-3 text-xs">
+                              <div className="pt-3 border-t border-border flex items-center justify-between gap-2 text-xs flex-wrap sm:flex-nowrap">
                                 {/* Contributor info */}
                                 <div className="flex items-center gap-2 min-w-0">
                                   <div className="w-7 h-7 rounded-full bg-primary/10 border border-border overflow-hidden flex items-center justify-center font-bold text-xs flex-shrink-0 text-primary">
@@ -411,10 +411,10 @@ export default function TimelineList({
                                     onClick={() =>
                                       handleToggleLike(item.id, item.likes_count, item.has_liked ?? false)
                                     }
-                                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all ${
+                                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all min-h-[32px] ${
                                       likeState.hasLiked
                                         ? 'bg-rose-500 text-white shadow-xs scale-105'
-                                        : 'bg-secondary/50 hover:bg-secondary text-foreground/70'
+                                        : 'bg-secondary/50 hover:bg-secondary text-foreground/70 active:scale-95'
                                     }`}
                                     title="Thả tim cột mốc kỷ niệm"
                                   >
@@ -431,7 +431,7 @@ export default function TimelineList({
                                     <button
                                       type="button"
                                       onClick={() => setEditingEvent(item)}
-                                      className="p-1.5 rounded-lg border border-border hover:bg-secondary text-foreground/60 hover:text-foreground transition-colors"
+                                      className="p-1.5 rounded-lg border border-border hover:bg-secondary text-foreground/60 hover:text-foreground transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center active:scale-95"
                                       title="Chỉnh sửa sự kiện"
                                     >
                                       <Edit3 className="w-3.5 h-3.5" />
@@ -443,7 +443,7 @@ export default function TimelineList({
                                     <button
                                       type="button"
                                       onClick={() => handleDelete(item.id)}
-                                      className="p-1.5 rounded-lg border border-border hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-foreground/60 transition-colors"
+                                      className="p-1.5 rounded-lg border border-border hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-foreground/60 transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center active:scale-95"
                                       title="Xóa sự kiện này"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />

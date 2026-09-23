@@ -76,20 +76,20 @@ export default async function GuestbookPage() {
   })
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8 w-full flex-1">
+    <main className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full flex-1 min-w-0">
       {/* Header Banner - Retro Notebook Aesthetic */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 bg-card p-6 sm:p-8 rounded-3xl border border-border shadow-sm relative overflow-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 sm:gap-6 mb-6 sm:mb-8 bg-card p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-border shadow-sm relative overflow-hidden w-full">
         {/* Decorative background watermark */}
         <div className="absolute -right-6 -bottom-6 opacity-5 pointer-events-none text-9xl font-serif select-none">
           9A
         </div>
 
-        <div className="space-y-1.5 max-w-xl">
+        <div className="space-y-1.5 max-w-xl w-full">
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-primary/10 text-primary">
-              <BookOpen className="w-6 h-6" />
+            <span className="p-1.5 sm:p-2 rounded-xl bg-primary/10 text-primary shrink-0">
+              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
             </span>
-            <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground tracking-tight break-words">
               Sổ Lưu Bút Tuổi Học Trò
             </h1>
           </div>

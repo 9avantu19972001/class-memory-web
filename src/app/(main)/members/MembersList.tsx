@@ -68,20 +68,20 @@ export default function MembersList({
   return (
     <div>
       {/* Search Input & Info Bar */}
-      <div className="mb-8 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
-        <div className="relative max-w-md w-full">
-          <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/40" />
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 w-full min-w-0">
+        <div className="relative max-w-md w-full min-w-0">
+          <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/40 pointer-events-none" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Tìm theo tên, biệt danh, nơi ở, vai trò..."
-            className="w-full pl-11 pr-4 py-2.5 bg-card border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground shadow-sm"
+            className="w-full pl-10 pr-4 py-2 sm:py-2.5 bg-card border border-border rounded-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-foreground shadow-sm min-h-[40px]"
           />
         </div>
 
         {isAdmin && (
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-medium border border-amber-300 dark:border-amber-800/50 self-start sm:self-auto">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-medium border border-amber-300 dark:border-amber-800/50 self-stretch sm:self-auto justify-center sm:justify-start">
             <span>🛡️ Quyền Admin: Có thể bấm duyệt ngay hoặc vào</span>
             <a href="/admin" className="font-bold underline hover:text-amber-950">
               Trang Quản Trị
@@ -91,7 +91,7 @@ export default function MembersList({
       </div>
 
       {/* Grid of Member Cards (Yearbook / Student card style) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full">
         {filteredMembers.map((member) => {
           const isCurrentUser = member.id === currentUserId
           const displayName = member.full_name || 'Thành viên lớp 9A'

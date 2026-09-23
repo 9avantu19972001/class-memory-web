@@ -362,13 +362,13 @@ export default function AdminDashboard({
       </div>
 
       {/* Control Bar: Filter Tabs & Search */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 w-full min-w-0">
         {/* Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-secondary/30 rounded-2xl overflow-x-auto border border-border">
+        <div className="flex items-center gap-1.5 p-1 bg-secondary/30 rounded-2xl overflow-x-auto border border-border w-full min-w-0 max-w-full no-scrollbar scroll-touch">
           <button
             type="button"
             onClick={() => setActiveTab('pending')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center gap-1.5 ${
               activeTab === 'pending'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-foreground/70 hover:text-foreground'
@@ -385,7 +385,7 @@ export default function AdminDashboard({
           <button
             type="button"
             onClick={() => setActiveTab('approved')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center justify-center ${
               activeTab === 'approved'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-foreground/70 hover:text-foreground'
@@ -397,7 +397,7 @@ export default function AdminDashboard({
           <button
             type="button"
             onClick={() => setActiveTab('admin')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center justify-center ${
               activeTab === 'admin'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-foreground/70 hover:text-foreground'
@@ -409,7 +409,7 @@ export default function AdminDashboard({
           <button
             type="button"
             onClick={() => setActiveTab('all')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 min-h-[36px] flex items-center justify-center ${
               activeTab === 'all'
                 ? 'bg-card text-foreground shadow-xs'
                 : 'text-foreground/70 hover:text-foreground'
@@ -420,14 +420,14 @@ export default function AdminDashboard({
         </div>
 
         {/* Search */}
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-72 min-w-0">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40 pointer-events-none" />
           <input
             type="text"
             placeholder="Tìm theo tên, email, chức vụ..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-card border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-foreground/40"
+            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-card border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground placeholder:text-foreground/40 min-h-[38px]"
           />
         </div>
       </div>
