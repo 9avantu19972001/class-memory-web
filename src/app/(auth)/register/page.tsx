@@ -1,4 +1,5 @@
 import { signup } from '../actions'
+import SocialAuthButtons from '../SocialAuthButtons'
 
 export default async function RegisterPage({
   searchParams,
@@ -9,16 +10,20 @@ export default async function RegisterPage({
   const error = params?.error
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-primary/10">
-      <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-2xl shadow-sm border border-border">
+      <div className="w-full max-w-md space-y-6 bg-card p-8 rounded-3xl shadow-sm border border-border">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-foreground font-serif">
+          <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-foreground font-serif">
             Đăng ký tham gia
           </h2>
-          <p className="mt-2 text-center text-sm text-foreground/60">
+          <p className="mt-2 text-center text-xs text-foreground/60 leading-relaxed">
             Tài khoản cần được Ban quản trị phê duyệt trước khi sử dụng.
           </p>
         </div>
-        <form className="mt-8 space-y-6" action={signup}>
+
+        {/* Social Quick Sign-in */}
+        <SocialAuthButtons mode="register" />
+
+        <form className="space-y-5" action={signup}>
           <div className="-space-y-px rounded-md shadow-sm gap-4 flex flex-col">
             <div>
               <label htmlFor="full-name" className="sr-only">
