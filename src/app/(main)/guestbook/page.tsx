@@ -122,6 +122,7 @@ export default async function GuestbookPage() {
       {/* Guestbook List with Sticky Notes */}
       <GuestbookList
         entries={entries}
+        classmates={classmates || []}
         classmatesMap={classmatesMap}
         currentUserId={user?.id || null}
         isAdmin={isAdmin}

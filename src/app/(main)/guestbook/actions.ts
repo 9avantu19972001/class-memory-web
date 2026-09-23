@@ -23,6 +23,7 @@ export async function createGuestbookEntry(formData: FormData) {
   const content = (formData.get('content') as string)?.trim()
   const color = (formData.get('color') as string) || 'yellow'
   const sticker = (formData.get('sticker') as string) || '🌸'
+  const font_family = (formData.get('font_family') as string) || 'caveat'
   const image_url = (formData.get('image_url') as string)?.trim() || null
   const visibility = (formData.get('visibility') as string) || 'public'
   const rawAllowedUsers = formData.get('allowed_user_ids') as string
@@ -46,6 +47,7 @@ export async function createGuestbookEntry(formData: FormData) {
     content,
     color,
     sticker,
+    font_family,
     image_url,
     visibility,
     allowed_user_ids,
@@ -54,6 +56,80 @@ export async function createGuestbookEntry(formData: FormData) {
   if (error) {
     console.error('Error inserting guestbook entry:', error)
     throw new Error('Không thể lưu mẩu lưu bút: ' + error.message)
+  }
+
+  revalidatePath('/guestbook')
+}
+
+export async function updateGuestbookEntry(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Vui lòng đăng nhập.')
+
+  const entryId = formData.get('entry_id') as string
+  if (!entryId) throw new Error('Thiếu mã mẩu lưu bút.')
+
+  // Check ownership or admin
+  const { data: entry } = await supabase
+    .from('guestbook_entries')
+    .select('user_id')
+    .eq('id', entryId)
+    .single()
+
+  if (!entry) throw new Error('Không tìm thấy mẩu lưu bút.')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = profile?.role === 'admin'
+  const isAuthor = entry.user_id === user.id
+
+  if (!isAuthor && !isAdmin) {
+    throw new Error('Bạn không có quyền chỉnh sửa mẩu lưu bút này.')
+  }
+
+  const title = (formData.get('title') as string)?.trim() || null
+  const content = (formData.get('content') as string)?.trim()
+  const color = (formData.get('color') as string) || 'yellow'
+  const sticker = (formData.get('sticker') as string) || '🌸'
+  const font_family = (formData.get('font_family') as string) || 'caveat'
+  const image_url = (formData.get('image_url') as string)?.trim() || null
+  const visibility = (formData.get('visibility') as string) || 'public'
+  const rawAllowedUsers = formData.get('allowed_user_ids') as string
+
+  if (!content) {
+    throw new Error('Nội dung lưu bút không được để trống.')
+  }
+
+  let allowed_user_ids: string[] = []
+  if (visibility === 'selected' && rawAllowedUsers) {
+    try {
+      allowed_user_ids = JSON.parse(rawAllowedUsers)
+    } catch {
+      allowed_user_ids = rawAllowedUsers.split(',').filter(Boolean)
+    }
+  }
+
+  const { error } = await supabase
+    .from('guestbook_entries')
+    .update({
+      title,
+      content,
+      color,
+      sticker,
+      font_family,
+      image_url,
+      visibility,
+      allowed_user_ids,
+    })
+    .eq('id', entryId)
+
+  if (error) {
+    console.error('Error updating guestbook entry:', error)
+    throw new Error('Không thể cập nhật mẩu lưu bút: ' + error.message)
   }
 
   revalidatePath('/guestbook')

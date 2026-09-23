@@ -15,6 +15,7 @@ import {
   Calendar,
   Send,
   Loader2,
+  Edit3,
 } from 'lucide-react'
 import {
   deleteGuestbookEntry,
@@ -23,6 +24,8 @@ import {
   addGuestbookComment,
   deleteGuestbookComment,
 } from './actions'
+import { PAPER_COLORS, getFontClass } from './guestbook-constants'
+import EditGuestbookModal from './EditGuestbookModal'
 
 interface Author {
   id: string
@@ -58,6 +61,7 @@ export interface GuestbookEntry {
   content: string
   color: string
   sticker: string
+  font_family?: string | null
   image_url: string | null
   visibility: 'public' | 'selected' | 'private'
   allowed_user_ids: string[]
@@ -66,6 +70,13 @@ export interface GuestbookEntry {
   author: Author | null
   reactions: Reaction[]
   comments?: GuestbookComment[]
+}
+
+interface Classmate {
+  id: string
+  full_name: string | null
+  nickname: string | null
+  avatar_url: string | null
 }
 
 const COLOR_MAP: Record<string, { bg: string; border: string; text: string; tape: string }> = {
@@ -79,11 +90,13 @@ const COLOR_MAP: Record<string, { bg: string; border: string; text: string; tape
 
 export default function GuestbookList({
   entries,
+  classmates,
   classmatesMap,
   currentUserId,
   isAdmin = false,
 }: {
   entries: GuestbookEntry[]
+  classmates: Classmate[]
   classmatesMap: Record<string, { full_name: string | null; nickname: string | null }>
   currentUserId: string | null
   isAdmin?: boolean
@@ -325,7 +338,7 @@ export default function GuestbookList({
         </div>
       </div>
 
-      {/* Grid of Nostalgic Sticky Notes - Cleanly separated from empty state to avoid multi-column CSS slicing */}
+      {/* Grid of Nostalgic Sticky Notes - Cleanly separated from empty state */}
       {filteredEntries.length === 0 ? (
         <div className="py-16 text-center bg-card rounded-3xl border border-dashed border-border p-8 my-6 max-w-xl mx-auto shadow-xs">
           <div className="w-14 h-14 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-3 text-3xl">
@@ -349,7 +362,9 @@ export default function GuestbookList({
           {filteredEntries.map((entry, idx) => {
             const colorConfig = COLOR_MAP[entry.color] || COLOR_MAP.yellow
             const isAuthor = entry.user_id === currentUserId
+            const canEdit = isAuthor || isAdmin
             const canDelete = isAuthor || isAdmin
+            const entryFontClass = getFontClass(entry.font_family)
 
             // Comments
             const commentsList = localComments[entry.id] ?? entry.comments ?? []
@@ -443,8 +458,8 @@ export default function GuestbookList({
                   </h3>
                 )}
 
-                {/* Handwriting Content */}
-                <div className="font-handwriting text-xl text-current leading-relaxed whitespace-pre-line my-1">
+                {/* Content with user-chosen Font */}
+                <div className={`text-xl text-current leading-relaxed whitespace-pre-line my-1 ${entryFontClass}`}>
                   "{entry.content}"
                 </div>
 
@@ -494,7 +509,7 @@ export default function GuestbookList({
                     </div>
                   </div>
 
-                  {/* Right Actions: Likes, Comments, Admin Pin & Delete */}
+                  {/* Right Actions: Likes, Comments, Edit, Admin Pin & Delete */}
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     {/* Heart Reaction */}
                     <button
@@ -529,6 +544,23 @@ export default function GuestbookList({
                       <MessageCircle className="w-3.5 h-3.5" />
                       <span>{commentsList.length}</span>
                     </button>
+
+                    {/* Edit Button (Author or Admin) */}
+                    {canEdit && (
+                      <EditGuestbookModal
+                        entry={entry}
+                        classmates={classmates}
+                        trigger={
+                          <button
+                            type="button"
+                            className="p-1.5 rounded-full hover:bg-black/10 text-current/70 hover:text-current transition-colors"
+                            title="Chỉnh sửa mẩu lưu bút"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                        }
+                      />
+                    )}
 
                     {/* Admin Pin Toggle */}
                     {isAdmin && (

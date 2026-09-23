@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PenTool, X, Loader2, Upload, Globe, Users, Lock, Check, Search, Type } from 'lucide-react'
+import { Edit3, X, Loader2, Upload, Globe, Users, Lock, Check, Search, Type } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import { createClient } from '@/lib/supabase/client'
-import { createGuestbookEntry } from './actions'
+import { updateGuestbookEntry } from './actions'
 import { PAPER_COLORS, STICKERS, FONT_OPTIONS, getFontClass } from './guestbook-constants'
+import { GuestbookEntry } from './GuestbookList'
 
 interface Classmate {
   id: string
@@ -15,33 +16,33 @@ interface Classmate {
   avatar_url: string | null
 }
 
-export default function CreateGuestbookModal({
+export default function EditGuestbookModal({
+  entry,
   classmates,
-  currentUserId,
-  isApproved,
+  trigger,
 }: {
+  entry: GuestbookEntry
   classmates: Classmate[]
-  currentUserId: string | null
-  isApproved: boolean
+  trigger?: React.ReactNode
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [color, setColor] = useState('yellow')
-  const [sticker, setSticker] = useState('🌸')
-  const [fontFamily, setFontFamily] = useState('caveat')
-  const [imageUrl, setImageUrl] = useState('')
-  const [visibility, setVisibility] = useState<'public' | 'selected' | 'private'>('public')
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+  const [title, setTitle] = useState(entry.title || '')
+  const [content, setContent] = useState(entry.content)
+  const [color, setColor] = useState(entry.color || 'yellow')
+  const [sticker, setSticker] = useState(entry.sticker || '🌸')
+  const [fontFamily, setFontFamily] = useState(entry.font_family || 'caveat')
+  const [imageUrl, setImageUrl] = useState(entry.image_url || '')
+  const [visibility, setVisibility] = useState<'public' | 'selected' | 'private'>(entry.visibility || 'public')
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>(entry.allowed_user_ids || [])
   const [searchClassmate, setSearchClassmate] = useState('')
   const router = useRouter()
   const supabase = createClient()
 
-  // Filter other classmates for the recipient picker
+  // Filter classmates for recipient picker
   const filteredClassmates = classmates
-    .filter((c) => c.id !== currentUserId)
+    .filter((c) => c.id !== entry.user_id)
     .filter((c) => {
       const term = searchClassmate.toLowerCase().trim()
       if (!term) return true
@@ -111,13 +112,14 @@ export default function CreateGuestbookModal({
     }
 
     if (visibility === 'selected' && selectedUserIds.length === 0) {
-      alert('Bạn đã chọn chế độ "Chỉ một số người". Vui lòng tích chọn ít nhất 1 bạn cùng lớp để nhận lưu bút.')
+      alert('Bạn đã chọn chế độ "Chỉ một số người". Vui lòng chọn ít nhất 1 bạn cùng lớp.')
       return
     }
 
     setIsLoading(true)
     try {
       const formData = new FormData()
+      formData.set('entry_id', entry.id)
       formData.set('title', title)
       formData.set('content', content)
       formData.set('color', color)
@@ -127,18 +129,9 @@ export default function CreateGuestbookModal({
       formData.set('visibility', visibility)
       formData.set('allowed_user_ids', JSON.stringify(selectedUserIds))
 
-      await createGuestbookEntry(formData)
+      await updateGuestbookEntry(formData)
 
-      // Reset and close
       setIsOpen(false)
-      setTitle('')
-      setContent('')
-      setColor('yellow')
-      setSticker('🌸')
-      setFontFamily('caveat')
-      setImageUrl('')
-      setVisibility('public')
-      setSelectedUserIds([])
       router.refresh()
     } catch (err: any) {
       console.error(err)
@@ -153,23 +146,20 @@ export default function CreateGuestbookModal({
 
   return (
     <>
-      <button
-        onClick={() => {
-          if (!currentUserId) {
-            router.push('/login')
-            return
-          }
-          if (!isApproved) {
-            alert('Tài khoản của bạn đang chờ Admin duyệt trước khi viết lưu bút.')
-            return
-          }
-          setIsOpen(true)
-        }}
-        className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-all shadow-md hover:shadow-lg text-sm group"
-      >
-        <PenTool className="w-4 h-4 group-hover:-rotate-12 transition-transform duration-300" />
-        <span>Viết trang lưu bút mới</span>
-      </button>
+      {trigger ? (
+        <span onClick={() => setIsOpen(true)} className="cursor-pointer inline-block">
+          {trigger}
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="p-1.5 rounded-full hover:bg-black/10 text-current/70 hover:text-current transition-colors"
+          title="Chỉnh sửa mẩu lưu bút"
+        >
+          <Edit3 className="w-3.5 h-3.5" />
+        </button>
+      )}
 
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
@@ -180,10 +170,10 @@ export default function CreateGuestbookModal({
                 <span className="text-2xl">{sticker}</span>
                 <div>
                   <h2 className="text-lg font-bold font-serif text-foreground">
-                    Viết Lưu Bút Tuổi Học Trò
+                    Chỉnh Sửa Mẩu Lưu Bút
                   </h2>
                   <p className="text-xs text-foreground/60">
-                    Lưu giữ những dòng tâm sự, kỷ niệm thanh xuân Lớp 9A
+                    Cập nhật nội dung, font chữ, màu sắc hoặc quyền riêng tư
                   </p>
                 </div>
               </div>
@@ -196,7 +186,7 @@ export default function CreateGuestbookModal({
               </button>
             </div>
 
-            {/* Modal Content */}
+            {/* Modal Body */}
             <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
               {/* Privacy Selector - 3 Modes */}
               <div>
@@ -216,7 +206,7 @@ export default function CreateGuestbookModal({
                     <Globe className={`w-4 h-4 mt-0.5 flex-shrink-0 ${visibility === 'public' ? 'text-primary' : 'text-foreground/50'}`} />
                     <div>
                       <div className="text-xs font-semibold text-foreground">Cả lớp 9A</div>
-                      <div className="text-[11px] text-foreground/60 mt-0.5">Tất cả bạn bè trong lớp đều đọc được</div>
+                      <div className="text-[11px] text-foreground/60 mt-0.5">Tất cả bạn bè đều đọc được</div>
                     </div>
                   </button>
 
@@ -232,7 +222,7 @@ export default function CreateGuestbookModal({
                     <Users className={`w-4 h-4 mt-0.5 flex-shrink-0 ${visibility === 'selected' ? 'text-primary' : 'text-foreground/50'}`} />
                     <div>
                       <div className="text-xs font-semibold text-foreground">Chỉ một số người</div>
-                      <div className="text-[11px] text-foreground/60 mt-0.5">Chọn bạn bè nhận lưu bút riêng ({selectedUserIds.length})</div>
+                      <div className="text-[11px] text-foreground/60 mt-0.5">Chọn bạn bè nhận riêng ({selectedUserIds.length})</div>
                     </div>
                   </button>
 
@@ -248,16 +238,16 @@ export default function CreateGuestbookModal({
                     <Lock className={`w-4 h-4 mt-0.5 flex-shrink-0 ${visibility === 'private' ? 'text-primary' : 'text-foreground/50'}`} />
                     <div>
                       <div className="text-xs font-semibold text-foreground">Chỉ mình tôi</div>
-                      <div className="text-[11px] text-foreground/60 mt-0.5">Trang nhật ký bí mật riêng của bạn</div>
+                      <div className="text-[11px] text-foreground/60 mt-0.5">Trang nhật ký bí mật riêng</div>
                     </div>
                   </button>
                 </div>
 
-                {/* Recipient Picker when 'selected' is active */}
+                {/* Recipient Picker when 'selected' */}
                 {visibility === 'selected' && (
                   <div className="mt-3 p-3.5 bg-secondary/15 rounded-xl border border-border space-y-2 animate-in fade-in duration-200">
                     <div className="flex items-center justify-between text-xs font-medium text-foreground/80">
-                      <span>Chọn những người bạn sẽ nhận được mẩu lưu bút này:</span>
+                      <span>Chọn bạn bè nhận lưu bút:</span>
                       <span className="text-primary font-bold">Đã chọn: {selectedUserIds.length} bạn</span>
                     </div>
 
@@ -297,11 +287,6 @@ export default function CreateGuestbookModal({
                           </div>
                         )
                       })}
-                      {filteredClassmates.length === 0 && (
-                        <div className="col-span-full py-2 text-center text-xs text-foreground/50">
-                          Không tìm thấy bạn nào.
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -343,12 +328,12 @@ export default function CreateGuestbookModal({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ví dụ: Gửi cả lớp 9A thân yêu, Nhớ những buổi trưa hè..."
+                  placeholder="Ví dụ: Gửi cả lớp 9A thân yêu..."
                   className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none font-medium"
                 />
               </div>
 
-              {/* Content Textarea with selected Font */}
+              {/* Content with selected Font */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1">
                   Nội dung lưu bút *
@@ -358,14 +343,13 @@ export default function CreateGuestbookModal({
                   required
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Viết những dòng tâm sự, câu thơ, kỷ niệm nhớ nhất hoặc lời chúc gửi các bạn..."
+                  placeholder="Viết những dòng tâm sự, câu thơ hoặc kỷ niệm..."
                   className={`w-full border rounded-xl p-4 text-xl leading-relaxed outline-none shadow-inner transition-colors resize-none ${currentColorConfig.bg} ${currentColorConfig.border} ${currentColorConfig.text} ${currentFontClass}`}
                 />
               </div>
 
               {/* Color & Sticker Pickers */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Paper Color */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1.5">
                     Màu giấy lưu bút
@@ -385,7 +369,6 @@ export default function CreateGuestbookModal({
                   </div>
                 </div>
 
-                {/* Sticker Picker */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1.5">
                     Sticker kỷ niệm
@@ -407,7 +390,7 @@ export default function CreateGuestbookModal({
                 </div>
               </div>
 
-              {/* Image Attachment (File upload or direct URL) */}
+              {/* Image Attachment */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1">
                   Đính kèm ảnh kỷ niệm (Tùy chọn)
@@ -466,7 +449,7 @@ export default function CreateGuestbookModal({
                   className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
                 >
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>Dán vào sổ lưu bút</span>
+                  <span>Lưu thay đổi</span>
                 </button>
               </div>
             </form>

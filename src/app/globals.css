@@ -28,6 +28,26 @@
   --font-handwriting: var(--font-caveat), cursive;
 }
 
+.font-caveat {
+  font-family: var(--font-caveat), cursive;
+}
+
+.font-patrick {
+  font-family: var(--font-patrick-hand), cursive;
+}
+
+.font-dancing {
+  font-family: var(--font-dancing), cursive;
+}
+
+.font-itim {
+  font-family: var(--font-itim), cursive;
+}
+
+.font-merriweather {
+  font-family: var(--font-merriweather), serif;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
