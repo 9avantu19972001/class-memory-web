@@ -61,70 +61,70 @@ export default function CountdownTimer() {
 
   if (!mounted) {
     return (
-      <div className="w-full max-w-xl mx-auto bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-xl min-h-[220px] animate-pulse" />
+      <div className="w-full max-w-xl mx-auto bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md min-h-[160px] animate-pulse" />
     )
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto bg-card text-foreground border border-border rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden backdrop-blur-md transition-all">
+    <div className="w-full max-w-xl mx-auto bg-card text-foreground border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-md sm:shadow-xl relative overflow-hidden backdrop-blur-md transition-all">
       {/* Ánh sáng mờ trang trí phía sau */}
       <div className="absolute -top-20 -left-20 w-44 h-44 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 -right-20 w-44 h-44 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* Tiêu đề */}
-      <div className="text-center mb-6 sm:mb-8 relative z-10">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/20 text-primary-foreground border border-primary/30 text-xs font-semibold uppercase tracking-wider mb-2.5">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
+      <div className="text-center mb-3.5 sm:mb-6 relative z-10">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1 sm:mb-2">
+          <Sparkles className="w-3 h-3 text-primary" />
           <span>Đếm ngược ngày hội ngộ</span>
         </span>
-        <h3 className="text-xl sm:text-2xl font-serif font-bold tracking-tight text-foreground">
-          Hội Ngộ Niên Khóa 1997 - 2001
+        <h3 className="text-base sm:text-xl md:text-2xl font-serif font-bold tracking-tight text-foreground">
+          Hội Ngộ Niên Khóa 1997 – 2001
         </h3>
-        <p className="text-xs sm:text-sm text-foreground/70 mt-1 flex items-center justify-center gap-1.5 font-medium">
-          <Calendar className="w-3.5 h-3.5 text-foreground/50" />
-          <span>Thời khắc hội ngộ: 08:00 - Ngày 01/05/2027</span>
+        <p className="text-[11px] sm:text-xs text-foreground/70 mt-0.5 sm:mt-1 flex items-center justify-center gap-1 font-medium">
+          <Calendar className="w-3 h-3 text-foreground/50" />
+          <span>Thời khắc hội ngộ: 08:00 – Ngày 01/05/2027</span>
         </p>
       </div>
 
       {/* 4 Ô vuông bo góc hiển thị Ngày - Giờ - Phút - Giây */}
       {!isFinished ? (
-        <div className="grid grid-cols-4 gap-2.5 sm:gap-4 relative z-10 transition-all duration-700 ease-out">
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-3 relative z-10 transition-all duration-700 ease-out">
           {/* Ô Ngày */}
-          <div className="flex flex-col items-center justify-center p-3 sm:p-5 rounded-2xl bg-background border border-border shadow-xs hover:border-primary/50 transition-all group">
-            <span className="text-2xl sm:text-4xl lg:text-5xl font-extrabold font-mono tracking-tight text-primary group-hover:scale-105 transition-transform duration-300">
+          <div className="flex flex-col items-center justify-center py-2 px-1 sm:p-4 rounded-xl sm:rounded-2xl bg-background border border-border shadow-xs hover:border-primary/50 transition-all group">
+            <span className="text-xl sm:text-3xl lg:text-4xl font-extrabold font-mono tracking-tight text-primary group-hover:scale-105 transition-transform duration-300">
               {timeLeft.days}
             </span>
-            <span className="text-[11px] sm:text-xs font-semibold text-foreground/60 uppercase tracking-wider mt-1 sm:mt-1.5">
+            <span className="text-[10px] sm:text-xs font-semibold text-foreground/60 uppercase tracking-wider mt-0.5 sm:mt-1">
               Ngày
             </span>
           </div>
 
           {/* Ô Giờ */}
-          <div className="flex flex-col items-center justify-center p-3 sm:p-5 rounded-2xl bg-background border border-border shadow-xs hover:border-primary/50 transition-all group">
-            <span className="text-2xl sm:text-4xl lg:text-5xl font-extrabold font-mono tracking-tight text-primary group-hover:scale-105 transition-transform duration-300">
+          <div className="flex flex-col items-center justify-center py-2 px-1 sm:p-4 rounded-xl sm:rounded-2xl bg-background border border-border shadow-xs hover:border-primary/50 transition-all group">
+            <span className="text-xl sm:text-3xl lg:text-4xl font-extrabold font-mono tracking-tight text-primary group-hover:scale-105 transition-transform duration-300">
               {timeLeft.hours}
             </span>
-            <span className="text-[11px] sm:text-xs font-semibold text-foreground/60 uppercase tracking-wider mt-1 sm:mt-1.5">
+            <span className="text-[10px] sm:text-xs font-semibold text-foreground/60 uppercase tracking-wider mt-0.5 sm:mt-1">
               Giờ
             </span>
           </div>
 
           {/* Ô Phút */}
-          <div className="flex flex-col items-center justify-center p-3 sm:p-5 rounded-2xl bg-background border border-border shadow-xs hover:border-primary/50 transition-all group">
-            <span className="text-2xl sm:text-4xl lg:text-5xl font-extrabold font-mono tracking-tight text-primary group-hover:scale-105 transition-transform duration-300">
+          <div className="flex flex-col items-center justify-center py-2 px-1 sm:p-4 rounded-xl sm:rounded-2xl bg-background border border-border shadow-xs hover:border-primary/50 transition-all group">
+            <span className="text-xl sm:text-3xl lg:text-4xl font-extrabold font-mono tracking-tight text-primary group-hover:scale-105 transition-transform duration-300">
               {timeLeft.minutes}
             </span>
-            <span className="text-[11px] sm:text-xs font-semibold text-foreground/60 uppercase tracking-wider mt-1 sm:mt-1.5">
+            <span className="text-[10px] sm:text-xs font-semibold text-foreground/60 uppercase tracking-wider mt-0.5 sm:mt-1">
               Phút
             </span>
           </div>
 
           {/* Ô Giây */}
-          <div className="flex flex-col items-center justify-center p-3 sm:p-5 rounded-2xl bg-background border border-border shadow-xs hover:border-amber-400 transition-all group">
-            <span className="text-2xl sm:text-4xl lg:text-5xl font-extrabold font-mono tracking-tight text-amber-500 group-hover:scale-105 transition-transform duration-300">
+          <div className="flex flex-col items-center justify-center py-2 px-1 sm:p-4 rounded-xl sm:rounded-2xl bg-background border border-border shadow-xs hover:border-amber-400 transition-all group">
+            <span className="text-xl sm:text-3xl lg:text-4xl font-extrabold font-mono tracking-tight text-amber-500 group-hover:scale-105 transition-transform duration-300">
               {timeLeft.seconds}
             </span>
-            <span className="text-[11px] sm:text-xs font-semibold text-foreground/60 uppercase tracking-wider mt-1 sm:mt-1.5">
+            <span className="text-[10px] sm:text-xs font-semibold text-foreground/60 uppercase tracking-wider mt-0.5 sm:mt-1">
               Giây
             </span>
           </div>
