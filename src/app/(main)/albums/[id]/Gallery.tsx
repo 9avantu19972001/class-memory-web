@@ -148,6 +148,8 @@ export default function Gallery({
           onNext={() => setSelectedIndex((prev) => Math.min(photos.length - 1, prev + 1))}
           hasPrev={selectedIndex > 0}
           hasNext={selectedIndex < photos.length - 1}
+          currentIndex={selectedIndex}
+          totalCount={photos.length}
         />
       )}
     </>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   X,
@@ -43,6 +43,8 @@ export default function PhotoModal({
   onNext,
   hasPrev,
   hasNext,
+  currentIndex,
+  totalCount,
 }: {
   photo: any
   albumId: string
@@ -54,12 +56,23 @@ export default function PhotoModal({
   onNext?: () => void
   hasPrev: boolean
   hasNext: boolean
+  currentIndex?: number
+  totalCount?: number
 }) {
   const [commentText, setCommentText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeletingPhoto, setIsDeletingPhoto] = useState(false)
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
   const [optimisticReactions, setOptimisticReactions] = useState<any[]>(photo.reactions || [])
+
+  // Touch swipe states
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+  const [touchStartY, setTouchStartY] = useState<number | null>(null)
+  const [touchDeltaX, setTouchDeltaX] = useState<number>(0)
+  const [isSwiping, setIsSwiping] = useState(false)
+  const touchStartTimeRef = useRef<number>(0)
+  const isHorizontalSwipeRef = useRef<boolean | null>(null)
+
   const router = useRouter()
 
   useEffect(() => {
@@ -84,6 +97,68 @@ export default function PhotoModal({
       document.body.style.overflow = 'unset'
     }
   }, [])
+
+  // Touch swipe gesture handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (photo.is_video) return
+    const touch = e.touches[0]
+    setTouchStartX(touch.clientX)
+    setTouchStartY(touch.clientY)
+    setTouchDeltaX(0)
+    setIsSwiping(true)
+    touchStartTimeRef.current = Date.now()
+    isHorizontalSwipeRef.current = null
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isSwiping || touchStartX === null || touchStartY === null) return
+    const touch = e.touches[0]
+    const deltaX = touch.clientX - touchStartX
+    const deltaY = touch.clientY - touchStartY
+
+    if (isHorizontalSwipeRef.current === null) {
+      if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+        isHorizontalSwipeRef.current = Math.abs(deltaX) > Math.abs(deltaY)
+      }
+    }
+
+    if (isHorizontalSwipeRef.current) {
+      // Elastic resistance at boundaries
+      if ((!hasPrev && deltaX > 0) || (!hasNext && deltaX < 0)) {
+        setTouchDeltaX(deltaX * 0.25)
+      } else {
+        setTouchDeltaX(deltaX)
+      }
+    }
+  }
+
+  const handleTouchEnd = () => {
+    if (!isSwiping || touchStartX === null) {
+      setIsSwiping(false)
+      setTouchDeltaX(0)
+      return
+    }
+
+    const elapsed = Date.now() - touchStartTimeRef.current
+    const minDistance = 45
+    const isQuickFlick = elapsed < 350 && Math.abs(touchDeltaX) > 25
+
+    if (touchDeltaX < -minDistance || (isQuickFlick && touchDeltaX < -25)) {
+      if (hasNext && onNext) {
+        onNext()
+      }
+    } else if (touchDeltaX > minDistance || (isQuickFlick && touchDeltaX > 25)) {
+      if (hasPrev && onPrev) {
+        onPrev()
+      }
+    }
+
+    setIsSwiping(false)
+    setTouchDeltaX(0)
+    setTouchStartX(null)
+    setTouchStartY(null)
+    isHorizontalSwipeRef.current = null
+  }
 
   const canDelete = currentUserId && (currentUserId === photo.uploaded_by || isAdmin)
 
@@ -202,8 +277,31 @@ export default function PhotoModal({
           <X className="w-5 h-5" />
         </button>
 
-        {/* LEFT COLUMN: Media Viewer */}
-        <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden min-h-[200px] sm:min-h-[350px] lg:min-h-0">
+        {/* LEFT COLUMN: Media Viewer with Touch Swipe Support */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={() => {
+            setIsSwiping(false)
+            setTouchDeltaX(0)
+            setTouchStartX(null)
+            setTouchStartY(null)
+          }}
+          className="relative flex-1 bg-black flex items-center justify-center overflow-hidden min-h-[200px] sm:min-h-[350px] lg:min-h-0 select-none touch-pan-y"
+        >
+          {/* Index Counter Badge Top Left */}
+          {totalCount !== undefined && totalCount > 0 && (
+            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-30 flex items-center gap-2 pointer-events-none">
+              <span className="bg-black/60 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-xs font-medium shadow-md">
+                {(currentIndex ?? 0) + 1} / {totalCount}
+              </span>
+              <span className="hidden sm:inline-block text-[11px] text-white/70 bg-black/40 px-2 py-0.5 rounded-full">
+                Phím ⬅ ➡
+              </span>
+            </div>
+          )}
+
           {photo.is_video ? (
             <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
               {ytId ? (
@@ -219,19 +317,38 @@ export default function PhotoModal({
               )}
             </div>
           ) : (
-            <img
-              src={getPublicUrl(photo.storage_path)}
-              alt={photo.caption || 'Kỷ niệm lớp 9A'}
-              className="max-w-full max-h-full object-contain select-none"
-            />
+            <div
+              className={`w-full h-full flex items-center justify-center transition-transform ${
+                isSwiping ? 'duration-0' : 'duration-300 ease-out'
+              }`}
+              style={{
+                transform: `translateX(${touchDeltaX}px)`,
+              }}
+            >
+              <img
+                src={getPublicUrl(photo.storage_path)}
+                alt={photo.caption || 'Kỷ niệm lớp 9A'}
+                className="max-w-full max-h-full object-contain select-none pointer-events-none"
+                draggable={false}
+              />
+            </div>
+          )}
+
+          {/* Swipe indicator hint for mobile users */}
+          {!photo.is_video && totalCount !== undefined && totalCount > 1 && (
+            <div className="sm:hidden absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-none z-20">
+              <span className="text-[10px] bg-black/50 backdrop-blur-xs text-white/80 px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                <span>👈 Vuốt để chuyển ảnh 👉</span>
+              </span>
+            </div>
           )}
 
           {/* Prev Button */}
           {hasPrev && (
             <button
               onClick={onPrev}
-              className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-all hover:scale-110 shadow-lg"
-              title="Ảnh trước (Mũi tên trái)"
+              className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-all hover:scale-110 shadow-lg z-20"
+              title="Ảnh trước (Mũi tên trái hoặc vuốt sang phải)"
             >
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
@@ -241,8 +358,8 @@ export default function PhotoModal({
           {hasNext && (
             <button
               onClick={onNext}
-              className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-all hover:scale-110 shadow-lg"
-              title="Ảnh sau (Mũi tên phải)"
+              className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-all hover:scale-110 shadow-lg z-20"
+              title="Ảnh sau (Mũi tên phải hoặc vuốt sang trái)"
             >
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
