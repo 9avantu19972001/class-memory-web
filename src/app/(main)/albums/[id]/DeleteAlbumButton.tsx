@@ -16,9 +16,9 @@ export default function DeleteAlbumButton({ albumId }: { albumId: string }) {
     setIsDeleting(true)
     try {
       await deleteAlbum(albumId)
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
-      alert('Không thể xóa album. Vui lòng kiểm tra lại quyền hoặc thử lại sau.')
+      alert(err?.message || 'Không thể xóa album. Vui lòng kiểm tra lại quyền hoặc thử lại sau.')
       setIsDeleting(false)
     }
   }

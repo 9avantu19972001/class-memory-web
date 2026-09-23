@@ -88,6 +88,30 @@ export async function deleteAlbum(albumId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  // Verify ownership or admin role
+  const { data: album } = await supabase
+    .from('albums')
+    .select('created_by')
+    .eq('id', albumId)
+    .single()
+
+  if (!album) {
+    throw new Error('Album không tồn tại.')
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isCreator = album.created_by === user.id
+  const isAdmin = profile?.role === 'admin'
+
+  if (!isCreator && !isAdmin) {
+    throw new Error('Bạn không có quyền xóa album này. Chỉ người tạo album hoặc Admin mới có quyền xóa.')
+  }
+
   // 1. Fetch photos to delete storage files
   const { data: photos } = await supabase
     .from('photos')
@@ -191,14 +215,31 @@ export async function deletePhoto(photoId: string, albumId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  // 1. Get photo to delete from Storage if it's an image file
+  // 1. Get photo to check ownership and delete from Storage if it's an image file
   const { data: photo } = await supabase
     .from('photos')
-    .select('storage_path, is_video')
+    .select('storage_path, is_video, uploaded_by')
     .eq('id', photoId)
     .single()
 
-  if (photo && !photo.is_video && photo.storage_path && photo.storage_path !== 'youtube') {
+  if (!photo) {
+    throw new Error('Ảnh không tồn tại.')
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isUploader = photo.uploaded_by === user.id
+  const isAdmin = profile?.role === 'admin'
+
+  if (!isUploader && !isAdmin) {
+    throw new Error('Bạn không có quyền xóa ảnh này. Chỉ người tải ảnh hoặc Admin mới có quyền xóa.')
+  }
+
+  if (!photo.is_video && photo.storage_path && photo.storage_path !== 'youtube') {
     await supabase.storage.from('memories').remove([photo.storage_path])
   }
 

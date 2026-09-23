@@ -85,6 +85,8 @@ export default async function AlbumDetailsPage({
     isAdmin = profile?.role === 'admin'
   }
 
+  const canDeleteAlbum = !!user && (user.id === album.created_by || isAdmin)
+
   return (
     <main className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full flex-1 flex flex-col min-w-0">
       <Link href="/albums" className="inline-flex items-center gap-2 text-foreground/60 hover:text-primary transition-colors mb-4 sm:mb-6 w-fit text-sm">
@@ -113,7 +115,7 @@ export default async function AlbumDetailsPage({
           
           <div className="flex-shrink-0 flex items-center gap-2.5 sm:gap-3 flex-wrap">
             <UploadPhotos albumId={album.id} isLoggedIn={!!user} isApproved={isApproved} />
-            {user && (
+            {canDeleteAlbum && (
               <DeleteAlbumButton albumId={album.id} />
             )}
           </div>
