@@ -1,9 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Briefcase, ExternalLink, Quote, GraduationCap, Edit3, UserCheck, Trash2, Loader2 } from 'lucide-react'
+import {
+  Search,
+  MapPin,
+  Briefcase,
+  ExternalLink,
+  Quote,
+  GraduationCap,
+  Edit3,
+  UserCheck,
+  Trash2,
+  Loader2,
+  Eye,
+} from 'lucide-react'
 import EditProfileModal from './EditProfileModal'
+import ViewProfileModal from './ViewProfileModal'
 import { approveMember, deleteMember } from '../admin/actions'
 
 interface Member {
@@ -18,6 +31,8 @@ interface Member {
   quote?: string | null
   facebook_url?: string | null
   is_approved?: boolean
+  email?: string | null
+  created_at?: string
 }
 
 export default function MembersList({
@@ -33,7 +48,16 @@ export default function MembersList({
   const [membersList, setMembersList] = useState<Member[]>(members)
   const [approvingId, setApprovingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [viewingMember, setViewingMember] = useState<Member | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    setMembersList(members)
+  }, [members])
+
+  const activeViewingMember = viewingMember
+    ? membersList.find((m) => m.id === viewingMember.id) || viewingMember
+    : null
 
   const handleApprove = async (memberId: string, name: string) => {
     if (!confirm(`Phê duyệt cho "${name}" chính thức tham gia lớp 9A?`)) return
@@ -123,7 +147,8 @@ export default function MembersList({
           return (
             <div
               key={member.id}
-              className={`bg-card rounded-2xl border transition-all duration-300 hover:shadow-md flex flex-col overflow-hidden group ${
+              onClick={() => setViewingMember(member)}
+              className={`bg-card rounded-2xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 flex flex-col overflow-hidden group cursor-pointer ${
                 isCurrentUser ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'
               }`}
             >
@@ -141,11 +166,14 @@ export default function MembersList({
                 )}
                 {member.is_approved === false && (
                   isAdmin ? (
-                    <div className="absolute bottom-2 left-3 flex items-center gap-1 z-10">
+                    <div className="absolute bottom-2 left-3 flex items-center gap-1 z-10" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         disabled={approvingId === member.id || deletingId === member.id}
-                        onClick={() => handleApprove(member.id, displayName)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleApprove(member.id, displayName)
+                        }}
                         className="inline-flex items-center gap-1 text-[11px] font-bold bg-amber-100 hover:bg-emerald-600 text-amber-900 hover:text-white border border-amber-300 hover:border-emerald-600 px-2.5 py-0.5 rounded-full shadow-xs transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50"
                         title="Bấm để phê duyệt ngay thành viên này"
                       >
@@ -159,7 +187,10 @@ export default function MembersList({
                       <button
                         type="button"
                         disabled={approvingId === member.id || deletingId === member.id}
-                        onClick={() => handleDelete(member.id, displayName)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(member.id, displayName)
+                        }}
                         className="inline-flex items-center justify-center p-1 rounded-full bg-rose-100 hover:bg-rose-600 text-rose-800 hover:text-white border border-rose-300 transition-all hover:scale-110 active:scale-95 cursor-pointer shadow-xs disabled:opacity-50"
                         title={`Xóa vĩnh viễn hồ sơ chờ duyệt của ${displayName}`}
                       >
@@ -246,6 +277,7 @@ export default function MembersList({
                       href={member.facebook_url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium hover:underline text-xs"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -254,38 +286,61 @@ export default function MembersList({
                   </div>
                 )}
 
-                {/* Actions footer: Only member can edit their own profile; Admin only views or approves/rejects */}
+                {/* Actions footer: All members can view profile, current user can edit, Admin can approve/delete */}
                 {isCurrentUser ? (
-                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto flex-wrap">
-                    <span className="text-[11px] text-foreground/50 font-medium">
-                      Hồ sơ của bạn
-                    </span>
-                    <EditProfileModal
-                      profile={member}
-                      isAdmin={false}
-                      trigger={
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground transition-all duration-200 border border-primary/20 shadow-xs cursor-pointer"
-                          title="Chỉnh sửa hồ sơ của bạn"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          <span>Chỉnh sửa</span>
-                        </button>
-                      }
-                    />
+                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setViewingMember(member)
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-secondary/80 hover:bg-primary hover:text-primary-foreground text-foreground/80 transition-all duration-200 border border-border shadow-2xs cursor-pointer group-hover:border-primary/40"
+                      title={`Xem chi tiết hồ sơ của ${displayName}`}
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Xem hồ sơ</span>
+                    </button>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <EditProfileModal
+                        profile={member}
+                        isAdmin={false}
+                        trigger={
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground transition-all duration-200 border border-primary/20 shadow-xs cursor-pointer"
+                            title="Chỉnh sửa hồ sơ của bạn"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            <span>Chỉnh sửa</span>
+                          </button>
+                        }
+                      />
+                    </div>
                   </div>
                 ) : isAdmin && member.is_approved === false ? (
-                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto flex-wrap">
-                    <span className="text-[11px] text-amber-700 font-medium">
-                      Chờ duyệt
-                    </span>
-                    <div className="flex items-center gap-1.5">
+                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setViewingMember(member)
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-secondary/80 hover:bg-primary hover:text-primary-foreground text-foreground/80 transition-all duration-200 border border-border shadow-2xs cursor-pointer"
+                      title={`Xem chi tiết hồ sơ của ${displayName}`}
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Xem</span>
+                    </button>
+                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         disabled={approvingId === member.id || deletingId === member.id}
-                        onClick={() => handleApprove(member.id, displayName)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleApprove(member.id, displayName)
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs disabled:opacity-50 cursor-pointer"
                         title={`Phê duyệt ${displayName} vào lớp`}
                       >
                         {approvingId === member.id ? (
@@ -298,8 +353,11 @@ export default function MembersList({
                       <button
                         type="button"
                         disabled={approvingId === member.id || deletingId === member.id}
-                        onClick={() => handleDelete(member.id, displayName)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(member.id, displayName)
+                        }}
+                        className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
                         title={`Xóa vĩnh viễn hồ sơ chờ duyệt của ${displayName}`}
                       >
                         {deletingId === member.id ? (
@@ -311,7 +369,22 @@ export default function MembersList({
                       </button>
                     </div>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setViewingMember(member)
+                      }}
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-secondary/80 hover:bg-primary hover:text-primary-foreground text-foreground/80 transition-all duration-200 border border-border shadow-2xs cursor-pointer group-hover:bg-primary group-hover:text-primary-foreground"
+                      title={`Bấm để xem đầy đủ hồ sơ của ${displayName}`}
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Xem hồ sơ</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )
@@ -325,6 +398,15 @@ export default function MembersList({
           </div>
         )}
       </div>
+
+      {/* Profile Detail View Modal */}
+      <ViewProfileModal
+        member={activeViewingMember}
+        currentUserId={currentUserId}
+        isAdmin={isAdmin}
+        isOpen={!!activeViewingMember}
+        onClose={() => setViewingMember(null)}
+      />
     </div>
   )
 }

@@ -139,7 +139,7 @@ export default function EditProfileModal({
       )}
 
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-card w-full max-w-lg rounded-2xl shadow-xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200 border border-border">
             <div className="flex justify-between items-center p-4 border-b border-border bg-secondary/10">
               <div>
