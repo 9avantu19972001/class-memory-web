@@ -42,6 +42,7 @@ export default async function MainLayout({
           <nav className="hidden md:flex items-center gap-6">
             <a href="/" className="font-medium hover:text-primary transition-colors">Trang chủ</a>
             <a href="/albums" className="font-medium hover:text-primary transition-colors">Albums</a>
+            <a href="/members" className="font-medium hover:text-primary transition-colors">Thành viên</a>
           </nav>
           <div className="flex items-center gap-4">
             {user ? (
