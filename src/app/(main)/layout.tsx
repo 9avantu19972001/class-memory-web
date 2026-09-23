@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { logout } from '../(auth)/actions'
-import { Home, Image as ImageIcon, Users, BookOpen, Shield } from 'lucide-react'
+import { Home, Image as ImageIcon, Users, BookOpen, Shield, History } from 'lucide-react'
 
 export default async function MainLayout({
   children,
@@ -54,6 +54,7 @@ export default async function MainLayout({
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <a href="/" className="font-medium hover:text-primary transition-colors">Trang chủ</a>
+            <a href="/timeline" className="font-medium hover:text-primary transition-colors">Niên khóa</a>
             <a href="/albums" className="font-medium hover:text-primary transition-colors">Albums</a>
             <a href="/members" className="font-medium hover:text-primary transition-colors">Thành viên</a>
             <a href="/guestbook" className="font-medium hover:text-primary transition-colors">Lưu bút</a>
@@ -99,10 +100,14 @@ export default async function MainLayout({
       {children}
 
       {/* Mobile Bottom Navigation Bar (Modern Web Guidance) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border flex items-center justify-around py-2 px-2 shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border flex items-center justify-around py-2 px-1 shadow-lg">
         <a href="/" className="flex flex-col items-center gap-0.5 text-foreground/70 hover:text-primary p-1.5 transition-colors">
           <Home className="w-5 h-5" />
           <span className="text-[10px] font-medium">Trang chủ</span>
+        </a>
+        <a href="/timeline" className="flex flex-col items-center gap-0.5 text-foreground/70 hover:text-primary p-1.5 transition-colors">
+          <History className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Niên khóa</span>
         </a>
         <a href="/albums" className="flex flex-col items-center gap-0.5 text-foreground/70 hover:text-primary p-1.5 transition-colors">
           <ImageIcon className="w-5 h-5" />
