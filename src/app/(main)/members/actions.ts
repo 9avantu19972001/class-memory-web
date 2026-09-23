@@ -10,18 +10,10 @@ export async function updateProfile(formData: FormData) {
 
   const targetUserId = (formData.get('target_user_id') as string) || user.id
 
-  // Check if user is admin
-  const { data: currentProfile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  const isAdmin = currentProfile?.role === 'admin'
-
-  // Only allow updating own profile unless admin
-  if (targetUserId !== user.id && !isAdmin) {
-    throw new Error('Bạn không có quyền chỉnh sửa hồ sơ này.')
+  // Chỉ cho phép thành viên tự cập nhật hồ sơ của chính mình.
+  // Quản trị viên chỉ có quyền xem hồ sơ, không có quyền chỉnh sửa hồ sơ của thành viên khác.
+  if (targetUserId !== user.id) {
+    throw new Error('Bạn chỉ có quyền chỉnh sửa hồ sơ của chính mình. Quản trị viên chỉ có quyền xem, không có quyền chỉnh sửa hồ sơ của thành viên.')
   }
 
   const full_name = formData.get('full_name') as string

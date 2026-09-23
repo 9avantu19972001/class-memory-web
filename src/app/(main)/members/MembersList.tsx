@@ -254,54 +254,20 @@ export default function MembersList({
                   </div>
                 )}
 
-                {/* Edit Button directly on each member card */}
-                {(isCurrentUser || isAdmin) && (
+                {/* Actions footer: Only member can edit their own profile; Admin only views or approves/rejects */}
+                {isCurrentUser ? (
                   <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto flex-wrap">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[11px] text-foreground/50 font-medium">
-                        {isCurrentUser ? 'Hồ sơ của bạn' : 'Quản trị viên'}
-                      </span>
-                      {isAdmin && member.is_approved === false && (
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            disabled={approvingId === member.id || deletingId === member.id}
-                            onClick={() => handleApprove(member.id, displayName)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs disabled:opacity-50"
-                            title={`Phê duyệt ${displayName} vào lớp`}
-                          >
-                            {approvingId === member.id ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <UserCheck className="w-3 h-3" />
-                            )}
-                            <span>Duyệt</span>
-                          </button>
-                          <button
-                            type="button"
-                            disabled={approvingId === member.id || deletingId === member.id}
-                            onClick={() => handleDelete(member.id, displayName)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all shadow-xs disabled:opacity-50"
-                            title={`Xóa vĩnh viễn hồ sơ chờ duyệt của ${displayName}`}
-                          >
-                            {deletingId === member.id ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-3 h-3 text-rose-600" />
-                            )}
-                            <span>Xóa</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <span className="text-[11px] text-foreground/50 font-medium">
+                      Hồ sơ của bạn
+                    </span>
                     <EditProfileModal
                       profile={member}
-                      isAdmin={isAdmin}
+                      isAdmin={false}
                       trigger={
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground transition-all duration-200 border border-primary/20 shadow-xs"
-                          title={isCurrentUser ? 'Chỉnh sửa hồ sơ của bạn' : `Chỉnh sửa hồ sơ của ${displayName}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground transition-all duration-200 border border-primary/20 shadow-xs cursor-pointer"
+                          title="Chỉnh sửa hồ sơ của bạn"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                           <span>Chỉnh sửa</span>
@@ -309,7 +275,43 @@ export default function MembersList({
                       }
                     />
                   </div>
-                )}
+                ) : isAdmin && member.is_approved === false ? (
+                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2 mt-auto flex-wrap">
+                    <span className="text-[11px] text-amber-700 font-medium">
+                      Chờ duyệt
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={approvingId === member.id || deletingId === member.id}
+                        onClick={() => handleApprove(member.id, displayName)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                        title={`Phê duyệt ${displayName} vào lớp`}
+                      >
+                        {approvingId === member.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <UserCheck className="w-3 h-3" />
+                        )}
+                        <span>Duyệt</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={approvingId === member.id || deletingId === member.id}
+                        onClick={() => handleDelete(member.id, displayName)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                        title={`Xóa vĩnh viễn hồ sơ chờ duyệt của ${displayName}`}
+                      >
+                        {deletingId === member.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3 h-3 text-rose-600" />
+                        )}
+                        <span>Xóa</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           )

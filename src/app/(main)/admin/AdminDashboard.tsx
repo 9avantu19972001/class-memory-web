@@ -14,7 +14,6 @@ import {
   UserX,
   ShieldCheck,
   ShieldAlert,
-  Edit3,
   Calendar,
   Sparkles,
   Loader2,
@@ -28,7 +27,6 @@ import {
   revokeMember,
   toggleAdminRole,
   deleteMember,
-  updateMemberDetails,
 } from './actions'
 
 export interface ProfileItem {
@@ -56,15 +54,7 @@ export default function AdminDashboard({
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'admin' | 'all'>('pending')
   const [processingId, setProcessingId] = useState<string | null>(null)
-  const [editingMember, setEditingMember] = useState<ProfileItem | null>(null)
-  const [editFormData, setEditFormData] = useState({
-    full_name: '',
-    nickname: '',
-    school_role: '',
-    current_job: '',
-    location: '',
-  })
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
   const router = useRouter()
 
   // Stats calculation
@@ -194,40 +184,6 @@ export default function AdminDashboard({
       alert(res.error)
       setProfiles(prevProfiles)
     } else {
-      startTransition(() => {
-        router.refresh()
-      })
-    }
-  }
-
-  const openEditModal = (member: ProfileItem) => {
-    setEditingMember(member)
-    setEditFormData({
-      full_name: member.full_name || '',
-      nickname: member.nickname || '',
-      school_role: member.school_role || '',
-      current_job: member.current_job || '',
-      location: member.location || '',
-    })
-  }
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingMember) return
-
-    setProcessingId(editingMember.id)
-    const res = await updateMemberDetails(editingMember.id, editFormData)
-    setProcessingId(null)
-
-    if (!res.success) {
-      alert(res.error)
-    } else {
-      setProfiles((prev) =>
-        prev.map((p) =>
-          p.id === editingMember.id ? { ...p, ...editFormData } : p
-        )
-      )
-      setEditingMember(null)
       startTransition(() => {
         router.refresh()
       })
@@ -612,16 +568,6 @@ export default function AdminDashboard({
                             )
                           )}
 
-                          {/* Quick Edit Details */}
-                          <button
-                            type="button"
-                            onClick={() => openEditModal(member)}
-                            className="p-1.5 rounded-lg border border-border hover:bg-secondary text-foreground/60 hover:text-foreground transition-colors"
-                            title="Sửa thông tin nhanh"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-
                           {/* Toggle Admin Role */}
                           {!isCurrent && (
                             <button
@@ -792,15 +738,6 @@ export default function AdminDashboard({
                     )}
 
                     <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(member)}
-                        className="p-2 rounded-xl border border-border text-foreground/60 hover:bg-secondary"
-                        title="Sửa"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-
                       {!isCurrent && (
                         <button
                           type="button"
@@ -833,134 +770,6 @@ export default function AdminDashboard({
                 </div>
               )
             })}
-          </div>
-        </div>
-      )}
-
-      {/* Quick Edit Modal */}
-      {editingMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-card w-full max-w-lg rounded-3xl border border-border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-5 border-b border-border bg-secondary/15">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                  <Edit3 className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-foreground text-sm font-serif">
-                    Chỉnh sửa thông tin hồ sơ
-                  </h3>
-                  <p className="text-xs text-foreground/60">
-                    Cập nhật chức vụ lớp xưa hoặc thông tin liên lạc
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEditingMember(null)}
-                className="text-foreground/50 hover:text-foreground p-1.5 rounded-full hover:bg-secondary/40 transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEdit} className="p-5 space-y-4 text-xs">
-              <div>
-                <label className="block font-semibold text-foreground/80 mb-1">
-                  Họ và tên *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editFormData.full_name}
-                  onChange={(e) =>
-                    setEditFormData((prev) => ({ ...prev, full_name: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-foreground/80 mb-1">
-                  Biệt danh thời đi học
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ví dụ: Tùng Béo, Mai Cận, Tuấn Còi..."
-                  value={editFormData.nickname}
-                  onChange={(e) =>
-                    setEditFormData((prev) => ({ ...prev, nickname: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-foreground/80 mb-1">
-                  Chức vụ / Vai trò niên khóa xưa
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ví dụ: Lớp trưởng, Bí thư chi đoàn, Lớp phó học tập, Tổ trưởng tổ 1..."
-                  value={editFormData.school_role}
-                  onChange={(e) =>
-                    setEditFormData((prev) => ({ ...prev, school_role: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-foreground/80 mb-1">
-                    Nơi ở hiện tại
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: Hà Nội, TP.HCM..."
-                    value={editFormData.location}
-                    onChange={(e) =>
-                      setEditFormData((prev) => ({ ...prev, location: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-foreground/80 mb-1">
-                    Công việc hiện tại
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: Kỹ sư, Bác sĩ, Kinh doanh..."
-                    value={editFormData.current_job}
-                    onChange={(e) =>
-                      setEditFormData((prev) => ({ ...prev, current_job: e.target.value }))
-                    }
-                    className="w-full px-3 py-2 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-border flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditingMember(null)}
-                  className="px-4 py-2 rounded-xl border border-border text-foreground/70 hover:bg-secondary font-medium transition-colors"
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  type="submit"
-                  disabled={processingId === editingMember.id}
-                  className="px-5 py-2 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors shadow-xs flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  {processingId === editingMember.id && (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  )}
-                  <span>Lưu thay đổi</span>
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

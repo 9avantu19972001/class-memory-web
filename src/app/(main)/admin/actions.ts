@@ -197,7 +197,14 @@ export async function updateMemberDetails(
   }
 ) {
   try {
-    const { supabase } = await checkAdmin()
+    const { supabase, currentUserId } = await checkAdmin()
+
+    if (userId !== currentUserId) {
+      return {
+        success: false,
+        error: 'Quản trị viên chỉ có quyền xem hồ sơ, không có quyền chỉnh sửa hồ sơ của thành viên.',
+      }
+    }
 
     const { error } = await supabase
       .from('profiles')
