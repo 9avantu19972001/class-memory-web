@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, User } from 'lucide-react'
 import UploadPhotos from './UploadPhotos'
 import Gallery from './Gallery'
 import DeleteAlbumButton from './DeleteAlbumButton'
+import AlbumInteractions from './AlbumInteractions'
 
 export default async function AlbumDetailsPage({
   params
@@ -34,6 +35,25 @@ export default async function AlbumDetailsPage({
     .select('*')
     .eq('album_id', id)
     .order('created_at', { ascending: false })
+
+  // Fetch comments with author profile
+  const { data: comments } = await supabase
+    .from('comments')
+    .select(`
+      id,
+      content,
+      created_at,
+      user_id,
+      profiles:user_id ( full_name, avatar_url, role )
+    `)
+    .eq('album_id', id)
+    .order('created_at', { ascending: true })
+
+  // Fetch reactions
+  const { data: reactions } = await supabase
+    .from('reactions')
+    .select('id, type, user_id')
+    .eq('album_id', id)
 
   const { data: { user } } = await supabase.auth.getUser()
   let isApproved = false
@@ -89,6 +109,15 @@ export default async function AlbumDetailsPage({
           <p className="text-foreground/70 mt-2">Hãy bắt đầu thêm ảnh vào album này nhé!</p>
         </div>
       )}
+
+      {/* Comments & Reactions Section */}
+      <AlbumInteractions
+        albumId={album.id}
+        comments={comments || []}
+        reactions={reactions || []}
+        currentUserId={user?.id || null}
+        isApproved={isApproved}
+      />
     </main>
   )
 }

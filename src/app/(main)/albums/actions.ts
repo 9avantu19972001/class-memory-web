@@ -119,3 +119,69 @@ export async function deleteAlbum(albumId: string) {
   revalidatePath('/')
   redirect('/albums')
 }
+
+export async function addAlbumComment(albumId: string, content: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  if (!content || !content.trim()) return
+
+  const { error } = await supabase.from('comments').insert({
+    album_id: albumId,
+    user_id: user.id,
+    content: content.trim()
+  })
+
+  if (error) {
+    console.error('Error adding comment:', error)
+    throw new Error('Failed to add comment')
+  }
+
+  revalidatePath(`/albums/${albumId}`)
+}
+
+export async function deleteAlbumComment(commentId: string, albumId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { error } = await supabase
+    .from('comments')
+    .delete()
+    .eq('id', commentId)
+
+  if (error) {
+    console.error('Error deleting comment:', error)
+    throw new Error('Failed to delete comment')
+  }
+
+  revalidatePath(`/albums/${albumId}`)
+}
+
+export async function toggleAlbumReaction(albumId: string, reactionType: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // Check if reaction already exists
+  const { data: existing } = await supabase
+    .from('reactions')
+    .select('id')
+    .eq('album_id', albumId)
+    .eq('user_id', user.id)
+    .eq('type', reactionType)
+    .maybeSingle()
+
+  if (existing) {
+    await supabase.from('reactions').delete().eq('id', existing.id)
+  } else {
+    await supabase.from('reactions').insert({
+      album_id: albumId,
+      user_id: user.id,
+      type: reactionType
+    })
+  }
+
+  revalidatePath(`/albums/${albumId}`)
+}
