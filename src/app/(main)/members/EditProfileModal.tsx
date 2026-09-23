@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Edit3, X, Loader2, Upload, Camera, Trash2, Link as LinkIcon } from 'lucide-react'
+import { Edit3, X, Loader2, Upload, Camera, Trash2, Link as LinkIcon, Phone, Shield, Lock, Eye, EyeOff } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import { createClient } from '@/lib/supabase/client'
 import { updateProfile } from './actions'
@@ -18,6 +18,10 @@ export interface Profile {
   quote?: string | null
   facebook_url?: string | null
   role?: string | null
+  email?: string | null
+  phone_number?: string | null
+  show_email?: boolean | null
+  show_phone?: boolean | null
 }
 
 export default function EditProfileModal({
@@ -32,18 +36,24 @@ export default function EditProfileModal({
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '')
+  const [phoneNumber, setPhoneNumber] = useState(profile.phone_number || '')
+  const [showEmail, setShowEmail] = useState(profile.show_email !== false)
+  const [showPhone, setShowPhone] = useState(profile.show_phone === true)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
-  // Sync avatarUrl whenever modal opens or profile changes
+  // Sync state whenever modal opens or profile changes
   useEffect(() => {
     if (isOpen) {
       setAvatarUrl(profile.avatar_url || '')
+      setPhoneNumber(profile.phone_number || '')
+      setShowEmail(profile.show_email !== false)
+      setShowPhone(profile.show_phone === true)
       setUploadError(null)
     }
-  }, [isOpen, profile.avatar_url])
+  }, [isOpen, profile])
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -108,6 +118,9 @@ export default function EditProfileModal({
     const formData = new FormData(e.currentTarget)
     formData.set('target_user_id', profile.id)
     formData.set('avatar_url', avatarUrl)
+    formData.set('phone_number', phoneNumber.trim())
+    formData.set('show_email', showEmail ? 'true' : 'false')
+    formData.set('show_phone', showPhone ? 'true' : 'false')
 
     try {
       await updateProfile(formData)
@@ -333,6 +346,25 @@ export default function EditProfileModal({
                 />
               </div>
 
+              {/* Phone Number */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-primary" />
+                  <span>Số điện thoại liên lạc</span>
+                </label>
+                <input
+                  type="tel"
+                  name="phone_number"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  placeholder="Ví dụ: 0912 345 678"
+                />
+                <p className="text-[11px] text-foreground/50 mt-1">
+                  Dùng để bạn bè trong lớp gọi điện hoặc kết nối Zalo hỏi thăm, họp lớp.
+                </p>
+              </div>
+
               {/* Facebook Link */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/70 mb-1">
@@ -345,6 +377,85 @@ export default function EditProfileModal({
                   className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                   placeholder="https://facebook.com/..."
                 />
+              </div>
+
+              {/* Privacy & Display Settings */}
+              <div className="bg-secondary/25 border border-border rounded-2xl p-4 space-y-3.5 mt-2">
+                <div className="flex items-center gap-2 border-b border-border/60 pb-2.5">
+                  <Shield className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                    Cài đặt quyền riêng tư & hiển thị
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-foreground/60 leading-relaxed">
+                  Chủ động lựa chọn những thông tin bạn đồng ý chia sẻ với các bạn học trong lớp:
+                </p>
+
+                <div className="space-y-3 pt-1">
+                  {/* Toggle show_email */}
+                  <label className="flex items-start gap-3 cursor-pointer group select-none">
+                    <input
+                      type="checkbox"
+                      checked={showEmail}
+                      onChange={(e) => setShowEmail(e.target.checked)}
+                      className="w-4 h-4 mt-0.5 rounded border-border text-primary focus:ring-primary cursor-pointer accent-primary"
+                    />
+                    <div className="text-xs flex-1">
+                      <div className="font-semibold text-foreground flex items-center justify-between gap-2">
+                        <span>Hiển thị Email với các bạn trong lớp</span>
+                        {showEmail ? (
+                          <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                            <Eye className="w-2.5 h-2.5" /> Hiển thị
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-800 flex items-center gap-1">
+                            <EyeOff className="w-2.5 h-2.5" /> Đang ẩn
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-foreground/50 mt-0.5">
+                        {showEmail
+                          ? 'Các bạn trong lớp có thể xem và sao chép địa chỉ email của bạn.'
+                          : 'Chỉ riêng bạn và Ban Quản Trị lớp mới nhìn thấy email này.'}
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Toggle show_phone */}
+                  <label className="flex items-start gap-3 cursor-pointer group select-none">
+                    <input
+                      type="checkbox"
+                      checked={showPhone}
+                      onChange={(e) => setShowPhone(e.target.checked)}
+                      className="w-4 h-4 mt-0.5 rounded border-border text-primary focus:ring-primary cursor-pointer accent-primary"
+                    />
+                    <div className="text-xs flex-1">
+                      <div className="font-semibold text-foreground flex items-center justify-between gap-2">
+                        <span>Hiển thị Số điện thoại với các bạn trong lớp</span>
+                        {showPhone ? (
+                          <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                            <Eye className="w-2.5 h-2.5" /> Hiển thị
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-800 flex items-center gap-1">
+                            <EyeOff className="w-2.5 h-2.5" /> Đang ẩn
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-foreground/50 mt-0.5">
+                        {showPhone
+                          ? 'Các bạn trong lớp có thể gọi điện, kết nối Zalo trực tiếp từ hồ sơ kỷ yếu.'
+                          : 'Chỉ riêng bạn và Ban Quản Trị lớp mới nhìn thấy số điện thoại này.'}
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                <div className="pt-2 border-t border-border/60 flex items-center gap-1.5 text-[11px] text-foreground/50">
+                  <Lock className="w-3.5 h-3.5 text-foreground/40 shrink-0" />
+                  <span>Người ngoài lớp hoặc khách chưa đăng nhập hoàn toàn KHÔNG xem được hồ sơ chi tiết của bạn.</span>
+                </div>
               </div>
 
               {/* Actions */}

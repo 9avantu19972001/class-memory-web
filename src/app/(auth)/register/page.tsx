@@ -53,6 +53,18 @@ export default async function RegisterPage({
               />
             </div>
             <div>
+              <label htmlFor="phone-number" className="sr-only">
+                Số điện thoại (tùy chọn)
+              </label>
+              <input
+                id="phone-number"
+                name="phone_number"
+                type="tel"
+                className="relative block w-full rounded-lg border-0 py-2.5 px-3 text-foreground ring-1 ring-inset ring-border placeholder:text-foreground/40 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-background"
+                placeholder="Số điện thoại (tùy chọn, để bạn bè liên lạc)"
+              />
+            </div>
+            <div>
               <label htmlFor="password" className="sr-only">
                 Mật khẩu
               </label>
@@ -65,6 +77,35 @@ export default async function RegisterPage({
                 placeholder="Mật khẩu (ít nhất 6 ký tự)"
               />
             </div>
+          </div>
+
+          {/* Privacy preferences on signup */}
+          <div className="bg-secondary/20 p-3.5 rounded-xl border border-border/70 space-y-2 text-xs">
+            <p className="font-semibold text-foreground/80 text-[11px] uppercase tracking-wider">
+              Cài đặt hiển thị với lớp:
+            </p>
+            <label className="flex items-center gap-2 text-foreground/75 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                name="show_email"
+                value="true"
+                defaultChecked
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer"
+              />
+              <span>Hiển thị Email cho các bạn trong lớp</span>
+            </label>
+            <label className="flex items-center gap-2 text-foreground/75 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                name="show_phone"
+                value="true"
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer"
+              />
+              <span>Hiển thị Số điện thoại cho các bạn trong lớp</span>
+            </label>
+            <p className="text-[10px] text-foreground/50 pt-1 border-t border-border/40">
+              🔒 Người ngoài lớp sẽ hoàn toàn không xem được hồ sơ chi tiết của bạn.
+            </p>
           </div>
 
           {error && (

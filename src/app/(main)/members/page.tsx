@@ -15,13 +15,47 @@ export default async function MembersPage() {
     : { data: null }
 
   const isAdmin = currentUserProfile?.role === 'admin'
+  const isApprovedMember = isAdmin || currentUserProfile?.is_approved === true
 
-  // Fetch members: Admins see all, normal visitors see approved members
+  // Fetch members: Admins see all, visitors see approved members (plus own profile if logged in)
   let query = supabase.from('profiles').select('*')
   if (!isAdmin) {
-    query = query.eq('is_approved', true)
+    if (user) {
+      query = query.or(`is_approved.eq.true,id.eq.${user.id}`)
+    } else {
+      query = query.eq('is_approved', true)
+    }
   }
-  const { data: members } = await query.order('created_at', { ascending: true })
+  const { data: rawMembers } = await query.order('created_at', { ascending: true })
+
+  // Bảo mật phía máy chủ (Server-side Sanitization):
+  // Nếu người xem KHÔNG PHẢI là thành viên chính thức của lớp:
+  // - Chỉ giữ lại thông tin danh bạ chung (tên, ảnh, biệt danh, vai trò xưa).
+  // - Toàn bộ thông tin cá nhân (SĐT, email, nơi ở, nghề nghiệp, facebook, kỷ niệm) của các thành viên khác được loại bỏ trước khi truyền về Client.
+  // - Nếu là hồ sơ của chính người xem: giữ nguyên để người đó tự xem và chỉnh sửa.
+  const members = rawMembers?.map((m) => {
+    if (isApprovedMember || (user && m.id === user.id)) {
+      return m
+    }
+    return {
+      id: m.id,
+      full_name: m.full_name,
+      nickname: m.nickname,
+      avatar_url: m.avatar_url,
+      school_role: m.school_role,
+      role: m.role,
+      is_approved: m.is_approved,
+      created_at: m.created_at,
+      current_job: null,
+      location: null,
+      quote: null,
+      facebook_url: null,
+      email: null,
+      phone_number: null,
+      show_email: null,
+      show_phone: null,
+    }
+  })
 
   return (
     <main className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8 w-full flex-1 min-w-0">
@@ -52,6 +86,8 @@ export default async function MembersPage() {
         members={members || []}
         currentUserId={user?.id || null}
         isAdmin={isAdmin}
+        isApprovedMember={isApprovedMember}
+        currentUserProfile={currentUserProfile}
       />
     </main>
   )

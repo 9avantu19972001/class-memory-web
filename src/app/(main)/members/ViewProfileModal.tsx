@@ -19,6 +19,10 @@ import {
   Check,
   ZoomIn,
   Edit3,
+  Phone,
+  MessageCircle,
+  Lock,
+  EyeOff,
 } from 'lucide-react'
 import EditProfileModal, { Profile } from './EditProfileModal'
 
@@ -43,6 +47,7 @@ export default function ViewProfileModal({
 }: ViewProfileModalProps) {
   const [mounted, setMounted] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
+  const [copiedPhone, setCopiedPhone] = useState(false)
   const [zoomedAvatar, setZoomedAvatar] = useState(false)
 
   useEffect(() => {
@@ -82,11 +87,29 @@ export default function ViewProfileModal({
       })
     : null
 
+  // Privacy evaluations:
+  // Email: show if isCurrentUser, or isAdmin, or show_email !== false
+  const canSeeEmail = isCurrentUser || isAdmin || member.show_email !== false
+  const isEmailHiddenFromClass = member.show_email === false
+
+  // Phone: show if isCurrentUser, or isAdmin, or show_phone === true
+  const canSeePhone = isCurrentUser || isAdmin || member.show_phone === true
+  const isPhoneHiddenFromClass = member.show_phone !== true
+
+  const cleanPhone = member.phone_number?.replace(/\D/g, '') || ''
+
   const copyEmail = () => {
     if (!member.email) return
     navigator.clipboard.writeText(member.email)
     setCopiedEmail(true)
     setTimeout(() => setCopiedEmail(false), 2000)
+  }
+
+  const copyPhone = () => {
+    if (!member.phone_number) return
+    navigator.clipboard.writeText(member.phone_number)
+    setCopiedPhone(true)
+    setTimeout(() => setCopiedPhone(false), 2000)
   }
 
   const modalContent = (
@@ -267,40 +290,143 @@ export default function ViewProfileModal({
               </div>
             </div>
 
-            {/* Email (if available) */}
-            {member.email && (
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] text-foreground/50 font-medium">Email liên lạc</p>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <span className="font-medium text-foreground text-xs sm:text-sm break-all">
-                      {member.email}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={copyEmail}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/20 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
-                      title="Sao chép email"
-                    >
-                      {copiedEmail ? (
-                        <>
-                          <Check className="w-3 h-3 text-emerald-600" />
-                          <span className="text-emerald-600 font-bold">Đã sao chép</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          <span>Sao chép</span>
-                        </>
+            {/* Phone Number (if available & permitted) */}
+            {member.phone_number ? (
+              canSeePhone ? (
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <Phone className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-[11px] text-foreground/50 font-medium">Số điện thoại liên lạc</p>
+                      {isPhoneHiddenFromClass && (
+                        <span className="text-[10px] text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.2 rounded-full border border-amber-300 dark:border-amber-800 flex items-center gap-1 font-semibold">
+                          <EyeOff className="w-2.5 h-2.5" />
+                          <span>Ẩn với lớp ({isCurrentUser ? 'Chỉ bạn & Admin thấy' : 'Bạn thấy vì là Admin'})</span>
+                        </span>
                       )}
-                    </button>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="font-semibold text-foreground text-xs sm:text-sm tracking-wide">
+                        {member.phone_number}
+                      </span>
+                      {cleanPhone && (
+                        <a
+                          href={`tel:${cleanPhone}`}
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:text-white bg-emerald-100 hover:bg-emerald-600 dark:bg-emerald-950/60 dark:hover:bg-emerald-600 px-2.5 py-0.5 rounded-md transition-colors cursor-pointer border border-emerald-300 dark:border-emerald-800 hover:border-transparent"
+                          title="Bấm để gọi điện"
+                        >
+                          <Phone className="w-3 h-3" />
+                          <span>Gọi</span>
+                        </a>
+                      )}
+                      {cleanPhone && (
+                        <a
+                          href={`https://zalo.me/${cleanPhone}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 dark:text-blue-300 hover:text-white bg-blue-100 hover:bg-blue-600 dark:bg-blue-950/60 dark:hover:bg-blue-600 px-2.5 py-0.5 rounded-md transition-colors cursor-pointer border border-blue-300 dark:border-blue-800 hover:border-transparent"
+                          title="Mở trò chuyện Zalo"
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                          <span>Zalo</span>
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={copyPhone}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/20 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                        title="Sao chép số điện thoại"
+                      >
+                        {copiedPhone ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-600" />
+                            <span className="text-emerald-600 font-bold">Đã sao chép</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" />
+                            <span>Sao chép</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-secondary/60 text-foreground/40 flex items-center justify-center shrink-0 mt-0.5">
+                    <Phone className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] text-foreground/50 font-medium">Số điện thoại liên lạc</p>
+                    <p className="text-xs text-foreground/50 italic flex items-center gap-1.5 mt-0.5">
+                      <Lock className="w-3 h-3 text-foreground/40 shrink-0" />
+                      <span>Thành viên đã ẩn số điện thoại theo cài đặt riêng tư</span>
+                    </p>
+                  </div>
+                </div>
+              )
+            ) : null}
+
+            {/* Email (if available & permitted) */}
+            {member.email ? (
+              canSeeEmail ? (
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-[11px] text-foreground/50 font-medium">Email liên lạc</p>
+                      {isEmailHiddenFromClass && (
+                        <span className="text-[10px] text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.2 rounded-full border border-amber-300 dark:border-amber-800 flex items-center gap-1 font-semibold">
+                          <EyeOff className="w-2.5 h-2.5" />
+                          <span>Ẩn với lớp ({isCurrentUser ? 'Chỉ bạn & Admin thấy' : 'Bạn thấy vì là Admin'})</span>
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="font-medium text-foreground text-xs sm:text-sm break-all">
+                        {member.email}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={copyEmail}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/20 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                        title="Sao chép email"
+                      >
+                        {copiedEmail ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-600" />
+                            <span className="text-emerald-600 font-bold">Đã sao chép</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" />
+                            <span>Sao chép</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-secondary/60 text-foreground/40 flex items-center justify-center shrink-0 mt-0.5">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] text-foreground/50 font-medium">Email liên lạc</p>
+                    <p className="text-xs text-foreground/50 italic flex items-center gap-1.5 mt-0.5">
+                      <Lock className="w-3 h-3 text-foreground/40 shrink-0" />
+                      <span>Thành viên đã ẩn email theo cài đặt riêng tư</span>
+                    </p>
+                  </div>
+                </div>
+              )
+            ) : null}
 
             {/* Facebook Link */}
             {member.facebook_url && (

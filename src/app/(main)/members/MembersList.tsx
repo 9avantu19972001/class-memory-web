@@ -14,6 +14,10 @@ import {
   Trash2,
   Loader2,
   Eye,
+  Lock,
+  ShieldAlert,
+  Clock,
+  X,
 } from 'lucide-react'
 import EditProfileModal from './EditProfileModal'
 import ViewProfileModal from './ViewProfileModal'
@@ -32,6 +36,9 @@ interface Member {
   facebook_url?: string | null
   is_approved?: boolean
   email?: string | null
+  phone_number?: string | null
+  show_email?: boolean | null
+  show_phone?: boolean | null
   created_at?: string
 }
 
@@ -39,16 +46,22 @@ export default function MembersList({
   members,
   currentUserId,
   isAdmin = false,
+  isApprovedMember = false,
+  currentUserProfile = null,
 }: {
   members: Member[]
   currentUserId: string | null
   isAdmin?: boolean
+  isApprovedMember?: boolean
+  currentUserProfile?: Member | null
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [membersList, setMembersList] = useState<Member[]>(members)
   const [approvingId, setApprovingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [viewingMember, setViewingMember] = useState<Member | null>(null)
+  const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false)
+  const [deniedTargetName, setDeniedTargetName] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -58,6 +71,16 @@ export default function MembersList({
   const activeViewingMember = viewingMember
     ? membersList.find((m) => m.id === viewingMember.id) || viewingMember
     : null
+
+  const handleCardClick = (member: Member) => {
+    const isCurrentUser = member.id === currentUserId
+    if (isApprovedMember || isCurrentUser) {
+      setViewingMember(member)
+    } else {
+      setDeniedTargetName(member.full_name || 'bạn học')
+      setShowAccessDeniedModal(true)
+    }
+  }
 
   const handleApprove = async (memberId: string, name: string) => {
     if (!confirm(`Phê duyệt cho "${name}" chính thức tham gia lớp 9A?`)) return
@@ -147,7 +170,7 @@ export default function MembersList({
           return (
             <div
               key={member.id}
-              onClick={() => setViewingMember(member)}
+              onClick={() => handleCardClick(member)}
               className={`bg-card rounded-2xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 flex flex-col overflow-hidden group cursor-pointer ${
                 isCurrentUser ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'
               }`}
@@ -244,46 +267,60 @@ export default function MembersList({
 
               {/* Card Body */}
               <div className="p-5 flex-1 flex flex-col justify-between text-xs text-foreground/80 space-y-3">
-                <div className="space-y-2">
-                  {member.current_job && (
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="w-3.5 h-3.5 text-foreground/50 flex-shrink-0" />
-                      <span className="break-words line-clamp-2">{member.current_job}</span>
+                {/* Nếu người xem không phải thành viên chính thức và không phải hồ sơ của chính họ: ẩn chi tiết cá nhân */}
+                {!isApprovedMember && !isCurrentUser ? (
+                  <div className="py-5 px-3 rounded-2xl bg-secondary/20 border border-dashed border-border/80 text-center flex flex-col items-center justify-center gap-2 my-auto">
+                    <div className="w-8 h-8 rounded-full bg-secondary/60 flex items-center justify-center text-foreground/50">
+                      <Lock className="w-4 h-4" />
                     </div>
-                  )}
-
-                  {member.location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-foreground/50 flex-shrink-0" />
-                      <span className="break-words line-clamp-2">{member.location}</span>
-                    </div>
-                  )}
-                </div>
-
-                {member.quote && (
-                  <div className="pt-2 border-t border-border/60">
-                    <div className="flex gap-1.5 items-start">
-                      <Quote className="w-3 h-3 text-primary flex-shrink-0 mt-0.5 rotate-180" />
-                      <p className="font-handwriting text-base text-foreground/85 line-clamp-2 leading-snug">
-                        "{member.quote}"
-                      </p>
-                    </div>
+                    <span className="text-xs text-foreground/60 font-medium leading-relaxed px-1">
+                      Hồ sơ cá nhân chỉ mở cho thành viên lớp
+                    </span>
                   </div>
-                )}
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      {member.current_job && (
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="w-3.5 h-3.5 text-foreground/50 flex-shrink-0" />
+                          <span className="break-words line-clamp-2">{member.current_job}</span>
+                        </div>
+                      )}
 
-                {member.facebook_url && (
-                  <div className="pt-2">
-                    <a
-                      href={member.facebook_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium hover:underline text-xs"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      <span>Trang cá nhân</span>
-                    </a>
-                  </div>
+                      {member.location && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-foreground/50 flex-shrink-0" />
+                          <span className="break-words line-clamp-2">{member.location}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {member.quote && (
+                      <div className="pt-2 border-t border-border/60">
+                        <div className="flex gap-1.5 items-start">
+                          <Quote className="w-3 h-3 text-primary flex-shrink-0 mt-0.5 rotate-180" />
+                          <p className="font-handwriting text-base text-foreground/85 line-clamp-2 leading-snug">
+                            "{member.quote}"
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {member.facebook_url && (
+                      <div className="pt-2">
+                        <a
+                          href={member.facebook_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium hover:underline text-xs"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Trang cá nhân</span>
+                        </a>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Actions footer: All members can view profile, current user can edit, Admin can approve/delete */}
@@ -375,12 +412,12 @@ export default function MembersList({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation()
-                        setViewingMember(member)
+                        handleCardClick(member)
                       }}
                       className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-secondary/80 hover:bg-primary hover:text-primary-foreground text-foreground/80 transition-all duration-200 border border-border shadow-2xs cursor-pointer group-hover:bg-primary group-hover:text-primary-foreground"
-                      title={`Bấm để xem đầy đủ hồ sơ của ${displayName}`}
+                      title={isApprovedMember ? `Bấm để xem đầy đủ hồ sơ của ${displayName}` : 'Hồ sơ chỉ dành cho thành viên lớp'}
                     >
-                      <Eye className="w-3.5 h-3.5" />
+                      {isApprovedMember ? <Eye className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                       <span>Xem hồ sơ</span>
                     </button>
                   </div>
@@ -407,6 +444,90 @@ export default function MembersList({
         isOpen={!!activeViewingMember}
         onClose={() => setViewingMember(null)}
       />
+
+      {/* Access Denied Modal for Non-members */}
+      {showAccessDeniedModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowAccessDeniedModal(false)}
+        >
+          <div
+            className="bg-card w-full max-w-md rounded-3xl border border-border shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowAccessDeniedModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full text-foreground/50 hover:text-foreground hover:bg-secondary/40 transition-colors cursor-pointer"
+              title="Đóng"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3 shadow-xs">
+                <ShieldAlert className="w-7 h-7" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-serif font-bold text-foreground">
+                Quyền Riêng Tư Lớp 9A
+              </h3>
+              <p className="text-xs text-foreground/60 mt-1">
+                Hồ sơ thành viên: <strong className="text-foreground">{deniedTargetName}</strong>
+              </p>
+            </div>
+
+            <div className="bg-secondary/25 border border-border/80 rounded-2xl p-4 text-xs text-foreground/75 space-y-2.5 leading-relaxed">
+              <p>
+                🔒 Để bảo vệ quyền riêng tư và thông tin cá nhân (số điện thoại, email, nơi ở, công việc...) của các thành viên trong tập thể lớp 9A (1997 - 2001), hồ sơ chi tiết chỉ mở cho các thành viên chính thức.
+              </p>
+              {!currentUserId ? (
+                <p className="text-foreground font-medium pt-1 border-t border-border/50">
+                  Nếu bạn là bạn học cùng lớp hoặc thầy cô, vui lòng đăng nhập hoặc gửi yêu cầu đăng ký để Ban Quản Trị phê duyệt tham gia nhé!
+                </p>
+              ) : (
+                <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-amber-800 dark:text-amber-300 mt-2">
+                  <p className="font-semibold flex items-center gap-1.5 mb-1 text-xs">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Tài khoản của bạn đang chờ phê duyệt</span>
+                  </p>
+                  <p className="text-[11px] leading-relaxed">
+                    Ban Quản Trị sẽ sớm xác nhận bạn vào danh bạ lớp. Sau khi được duyệt, bạn sẽ có quyền xem đầy đủ hồ sơ của tất cả các bạn học!
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+              {!currentUserId ? (
+                <>
+                  <a
+                    href="/login"
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs sm:text-sm text-center shadow-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <span>Đăng nhập ngay</span>
+                  </a>
+                  <a
+                    href="/register"
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-secondary border border-border text-foreground font-semibold text-xs sm:text-sm text-center hover:bg-secondary/80 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <span>Đăng ký thành viên</span>
+                  </a>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowAccessDeniedModal(false)}
+                  className="w-full py-2.5 px-4 rounded-xl bg-secondary border border-border text-foreground font-semibold text-xs sm:text-sm text-center hover:bg-secondary/80 transition-all cursor-pointer"
+                >
+                  Đã hiểu, quay lại
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

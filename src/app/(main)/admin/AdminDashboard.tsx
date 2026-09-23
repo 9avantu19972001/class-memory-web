@@ -21,6 +21,7 @@ import {
   MapPin,
   Briefcase,
   AlertTriangle,
+  Phone,
 } from 'lucide-react'
 import {
   approveMember,
@@ -34,6 +35,9 @@ export interface ProfileItem {
   full_name: string | null
   nickname: string | null
   email?: string | null
+  phone_number?: string | null
+  show_email?: boolean | null
+  show_phone?: boolean | null
   avatar_url: string | null
   role: string | null
   school_role: string | null
@@ -462,12 +466,24 @@ export default function AdminDashboard({
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-[11px] text-foreground/60 mt-0.5">
+                            <div className="flex items-center gap-2 text-[11px] text-foreground/60 mt-0.5 flex-wrap">
                               {member.nickname && <span>({member.nickname})</span>}
                               {member.email && (
                                 <span className="flex items-center gap-1">
                                   <Mail className="w-3 h-3 text-foreground/40" />
                                   <span>{member.email}</span>
+                                  {member.show_email === false && (
+                                    <span className="text-[9px] text-amber-700 bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300 px-1 py-0.2 rounded font-medium">Ẩn với lớp</span>
+                                  )}
+                                </span>
+                              )}
+                              {member.phone_number && (
+                                <span className="flex items-center gap-1">
+                                  <Phone className="w-3 h-3 text-foreground/40" />
+                                  <span>{member.phone_number}</span>
+                                  {member.show_phone !== true && (
+                                    <span className="text-[9px] text-amber-700 bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300 px-1 py-0.2 rounded font-medium">Ẩn với lớp</span>
+                                  )}
                                 </span>
                               )}
                             </div>
@@ -650,9 +666,14 @@ export default function AdminDashboard({
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-foreground/60">
+                        <div className="text-xs text-foreground/60 flex flex-wrap items-center gap-1 mt-0.5">
                           {member.nickname && <span>({member.nickname}) • </span>}
                           <span>{createdDate}</span>
+                          {member.phone_number && (
+                            <span className="flex items-center gap-1 text-[11px] text-foreground/80 font-medium">
+                              • <Phone className="w-3 h-3 text-primary" /> {member.phone_number}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
