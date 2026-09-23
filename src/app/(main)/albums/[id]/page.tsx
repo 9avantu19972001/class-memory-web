@@ -29,14 +29,29 @@ export default async function AlbumDetailsPage({
     notFound()
   }
 
-  // Fetch photos
+  // Fetch photos with uploader, photo comments, and photo reactions
   const { data: photos } = await supabase
     .from('photos')
-    .select('*')
+    .select(`
+      *,
+      uploader:uploaded_by ( full_name, avatar_url ),
+      comments (
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles:user_id ( full_name, avatar_url, role )
+      ),
+      reactions (
+        id,
+        type,
+        user_id
+      )
+    `)
     .eq('album_id', id)
     .order('created_at', { ascending: false })
 
-  // Fetch comments with author profile
+  // Fetch album comments (where photo_id is null)
   const { data: comments } = await supabase
     .from('comments')
     .select(`
@@ -47,23 +62,27 @@ export default async function AlbumDetailsPage({
       profiles:user_id ( full_name, avatar_url, role )
     `)
     .eq('album_id', id)
+    .is('photo_id', null)
     .order('created_at', { ascending: true })
 
-  // Fetch reactions
+  // Fetch album reactions (where photo_id is null)
   const { data: reactions } = await supabase
     .from('reactions')
     .select('id, type, user_id')
     .eq('album_id', id)
+    .is('photo_id', null)
 
   const { data: { user } } = await supabase.auth.getUser()
   let isApproved = false
+  let isAdmin = false
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_approved')
+      .select('is_approved, role')
       .eq('id', user.id)
       .single()
     isApproved = !!profile?.is_approved
+    isAdmin = profile?.role === 'admin'
   }
 
   return (
@@ -102,7 +121,13 @@ export default async function AlbumDetailsPage({
       </div>
 
       {photos && photos.length > 0 ? (
-        <Gallery photos={photos} />
+        <Gallery
+          photos={photos}
+          albumId={album.id}
+          currentUserId={user?.id || null}
+          isApproved={isApproved}
+          isAdmin={isAdmin}
+        />
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center text-center py-20 bg-background/50 rounded-2xl border border-dashed border-border">
           <h3 className="text-xl font-serif font-bold text-foreground">Album đang trống</h3>

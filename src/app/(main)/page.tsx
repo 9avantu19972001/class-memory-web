@@ -6,12 +6,40 @@ import Gallery from './albums/[id]/Gallery'
 export default async function Home() {
   const supabase = await createClient()
 
-  // Fetch 8 most recent photos across all albums
+  // Fetch 8 most recent photos with uploader, comments and reactions
   const { data: recentPhotos } = await supabase
     .from('photos')
-    .select('*')
+    .select(`
+      *,
+      uploader:uploaded_by ( full_name, avatar_url ),
+      comments (
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles:user_id ( full_name, avatar_url, role )
+      ),
+      reactions (
+        id,
+        type,
+        user_id
+      )
+    `)
     .order('created_at', { ascending: false })
     .limit(8)
+
+  const { data: { user } } = await supabase.auth.getUser()
+  let isApproved = false
+  let isAdmin = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_approved, role')
+      .eq('id', user.id)
+      .single()
+    isApproved = !!profile?.is_approved
+    isAdmin = profile?.role === 'admin'
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -64,7 +92,12 @@ export default async function Home() {
           </div>
           
           {recentPhotos && recentPhotos.length > 0 ? (
-            <Gallery photos={recentPhotos} />
+            <Gallery
+              photos={recentPhotos}
+              currentUserId={user?.id || null}
+              isApproved={isApproved}
+              isAdmin={isAdmin}
+            />
           ) : (
             <div className="py-16 px-4 text-center bg-card rounded-2xl border border-dashed border-border flex flex-col items-center justify-center">
               <ImageIcon className="w-12 h-12 text-primary/40 mb-3" />

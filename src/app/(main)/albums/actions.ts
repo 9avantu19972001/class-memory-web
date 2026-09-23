@@ -185,3 +185,102 @@ export async function toggleAlbumReaction(albumId: string, reactionType: string)
 
   revalidatePath(`/albums/${albumId}`)
 }
+
+export async function deletePhoto(photoId: string, albumId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // 1. Get photo to delete from Storage if it's an image file
+  const { data: photo } = await supabase
+    .from('photos')
+    .select('storage_path, is_video')
+    .eq('id', photoId)
+    .single()
+
+  if (photo && !photo.is_video && photo.storage_path && photo.storage_path !== 'youtube') {
+    await supabase.storage.from('memories').remove([photo.storage_path])
+  }
+
+  // 2. Delete photo record from DB (comments & reactions cascade delete)
+  const { error } = await supabase
+    .from('photos')
+    .delete()
+    .eq('id', photoId)
+
+  if (error) {
+    console.error('Error deleting photo:', error)
+    throw new Error('Failed to delete photo')
+  }
+
+  revalidatePath(`/albums/${albumId}`)
+  revalidatePath('/albums')
+  revalidatePath('/')
+}
+
+export async function togglePhotoReaction(photoId: string, albumId: string, reactionType: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: existing } = await supabase
+    .from('reactions')
+    .select('id')
+    .eq('photo_id', photoId)
+    .eq('user_id', user.id)
+    .eq('type', reactionType)
+    .maybeSingle()
+
+  if (existing) {
+    await supabase.from('reactions').delete().eq('id', existing.id)
+  } else {
+    await supabase.from('reactions').insert({
+      photo_id: photoId,
+      album_id: albumId,
+      user_id: user.id,
+      type: reactionType
+    })
+  }
+
+  revalidatePath(`/albums/${albumId}`)
+}
+
+export async function addPhotoComment(photoId: string, albumId: string, content: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  if (!content || !content.trim()) return
+
+  const { error } = await supabase.from('comments').insert({
+    photo_id: photoId,
+    album_id: albumId,
+    user_id: user.id,
+    content: content.trim()
+  })
+
+  if (error) {
+    console.error('Error adding photo comment:', error)
+    throw new Error('Failed to add photo comment')
+  }
+
+  revalidatePath(`/albums/${albumId}`)
+}
+
+export async function deletePhotoComment(commentId: string, albumId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { error } = await supabase
+    .from('comments')
+    .delete()
+    .eq('id', commentId)
+
+  if (error) {
+    console.error('Error deleting photo comment:', error)
+    throw new Error('Failed to delete photo comment')
+  }
+
+  revalidatePath(`/albums/${albumId}`)
+}

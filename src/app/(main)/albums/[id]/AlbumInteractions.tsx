@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Heart, Smile, Sparkles, MessageCircle, Send, Trash2, Loader2, User } from 'lucide-react'
 import { addAlbumComment, deleteAlbumComment, toggleAlbumReaction } from '../actions'
@@ -41,10 +41,16 @@ export default function AlbumInteractions({
   currentUserId,
   isApproved,
 }: AlbumInteractionsProps) {
+  const [optimisticReactions, setOptimisticReactions] = useState(reactions)
   const [commentText, setCommentText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const router = useRouter()
+
+  // Keep optimistic state in sync when server returns new data
+  useEffect(() => {
+    setOptimisticReactions(reactions)
+  }, [reactions])
 
   const handleReaction = async (type: string) => {
     if (!currentUserId) {
@@ -56,11 +62,18 @@ export default function AlbumInteractions({
       return
     }
 
+    // Instant optimistic update (zero latency)
+    const exists = optimisticReactions.some((r) => r.type === type && r.user_id === currentUserId)
+    const next = exists
+      ? optimisticReactions.filter((r) => !(r.type === type && r.user_id === currentUserId))
+      : [...optimisticReactions, { id: 'temp-' + Date.now(), type, user_id: currentUserId }]
+    setOptimisticReactions(next)
+
     try {
       await toggleAlbumReaction(albumId, type)
-      router.refresh()
     } catch (err) {
-      console.error(err)
+      console.error('Reaction toggle failed:', err)
+      setOptimisticReactions(reactions) // revert on error
     }
   }
 
@@ -106,7 +119,7 @@ export default function AlbumInteractions({
 
   // Calculate reaction counts
   const reactionCounts = Object.keys(REACTION_CONFIG).map((type) => {
-    const matching = reactions.filter((r) => r.type === type)
+    const matching = optimisticReactions.filter((r) => r.type === type)
     const hasReacted = currentUserId ? matching.some((r) => r.user_id === currentUserId) : false
     return {
       type,
