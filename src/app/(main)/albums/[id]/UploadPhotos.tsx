@@ -7,6 +7,7 @@ import imageCompression from 'browser-image-compression'
 import { createClient } from '@/lib/supabase/client'
 import { savePhotoRecords, addYoutubeVideo } from '../actions'
 import { useRouter } from 'next/navigation'
+import { getYouTubeId } from '@/lib/youtube'
 
 export default function UploadPhotos({
   albumId,
@@ -232,19 +233,24 @@ export default function UploadPhotos({
                       className="w-full border border-border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     />
                   </div>
-                  {videoUrl && videoUrl.includes('youtube.com') && (
-                    <div className="aspect-video rounded-xl overflow-hidden border border-border mt-2">
-                      <iframe 
-                        width="100%" 
-                        height="100%" 
-                        src={`https://www.youtube.com/embed/${new URL(videoUrl).searchParams.get('v')}`} 
-                        title="YouTube video player" 
-                        frameBorder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowFullScreen
-                      ></iframe>
-                    </div>
-                  )}
+                  {(() => {
+                    const previewYtId = getYouTubeId(videoUrl)
+                    if (!previewYtId) return null
+                    return (
+                      <div className="aspect-video rounded-xl overflow-hidden border border-border mt-2 bg-black">
+                        <iframe 
+                          width="100%" 
+                          height="100%" 
+                          src={`https://www.youtube-nocookie.com/embed/${previewYtId}?rel=0`} 
+                          title="YouTube video player" 
+                          frameBorder="0" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                          referrerPolicy="strict-origin-when-cross-origin"
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    )
+                  })()}
                   <button 
                     type="submit"
                     disabled={!videoUrl || isUploading}

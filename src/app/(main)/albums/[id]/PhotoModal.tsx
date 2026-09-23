@@ -12,6 +12,7 @@ import {
   User,
   MessageCircle,
   Calendar,
+  ExternalLink,
 } from 'lucide-react'
 import { getYouTubeId } from '@/lib/youtube'
 import {
@@ -288,7 +289,9 @@ export default function PhotoModal({
             setTouchStartX(null)
             setTouchStartY(null)
           }}
-          className="relative flex-1 bg-black flex items-center justify-center overflow-hidden min-h-[200px] sm:min-h-[350px] lg:min-h-0 select-none touch-pan-y"
+          className={`relative flex-1 bg-black flex items-center justify-center overflow-hidden min-h-[280px] sm:min-h-[400px] lg:h-full lg:min-h-0 ${
+            !photo.is_video ? 'select-none touch-pan-y' : ''
+          }`}
         >
           {/* Index Counter Badge Top Left */}
           {totalCount !== undefined && totalCount > 0 && (
@@ -303,17 +306,50 @@ export default function PhotoModal({
           )}
 
           {photo.is_video ? (
-            <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
+            <div className="w-full h-full flex flex-col items-center justify-center p-2 sm:p-5 min-h-0">
               {ytId ? (
-                <iframe
-                  className="w-full aspect-video max-h-full rounded-xl"
-                  src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
-                  title="YouTube video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+                <div className="relative w-full aspect-video max-w-4xl max-h-[75vh] rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 flex items-center justify-center">
+                  <iframe
+                    className="absolute inset-0 w-full h-full border-0 rounded-2xl"
+                    src={`https://www.youtube-nocookie.com/embed/${ytId}?rel=0&enablejsapi=1`}
+                    title={photo.caption || 'Video kỷ niệm Lớp 9A'}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  />
+                </div>
               ) : (
-                <p className="text-white">Không tải được video.</p>
+                <div className="text-center p-6 bg-zinc-900/90 rounded-2xl border border-white/15 max-w-sm">
+                  <p className="text-white text-sm mb-3">Không nhận diện được mã video YouTube.</p>
+                  {photo.video_url && (
+                    <a
+                      href={photo.video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-colors shadow-md"
+                    >
+                      <span>Mở xem trên YouTube</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Direct YouTube link fallback button */}
+              {photo.video_url && (
+                <div className="mt-3 flex items-center justify-center gap-3">
+                  <a
+                    href={photo.video_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-1.5 rounded-full backdrop-blur-sm transition-all shadow-xs cursor-pointer"
+                    title="Mở video này trên tab hoặc ứng dụng YouTube"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                    <span>Xem trực tiếp trên YouTube</span>
+                    <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
+                  </a>
+                </div>
               )}
             </div>
           ) : (

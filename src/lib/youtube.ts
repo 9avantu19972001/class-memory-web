@@ -8,8 +8,12 @@
  */
 export function getYouTubeId(url: string | null | undefined): string | null {
   if (!url) return null
-  const match = url.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/
+  const trimmed = url.trim()
+  if (/^[\w-]{11}$/.test(trimmed)) {
+    return trimmed
+  }
+  const match = trimmed.match(
+    /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([\w-]{11})/i
   )
   return match ? match[1] : null
 }
